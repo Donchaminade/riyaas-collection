@@ -74,13 +74,40 @@
                     <?= htmlspecialchars($product['name']) ?>
                 </h1>
 
+               <?php
+                $isPromo    = !empty($product['en_promotion']) && !empty($product['prix_promotion']);
+                $finalPrice = $isPromo ? $product['prix_promotion'] : $product['price'];
+                ?>
+
+                <!-- Badge PROMO -->
+                <?php if ($isPromo): ?>
+                <div style="display:inline-block; background:#C0392B; color:white; font-size:0.7rem;
+                            letter-spacing:0.1em; padding:0.4rem 0.9rem; margin-bottom:1rem; font-weight:500;">
+                    🔥 PROMOTION
+                </div>
+                <?php endif; ?>
+
+                <!-- Stock bas -->
+                <?php if (!empty($product['stock_quantity']) && $product['stock_quantity'] <= ($product['seuil_alerte_stock'] ?? 3)): ?>
+                <div style="background:#fdf0ef; border-left:3px solid #C0392B; padding:0.8rem 1rem; margin-bottom:1.5rem;">
+                    <p style="font-size:0.85rem; color:#C0392B; font-weight:600;">
+                        🔥 Plus que <?= $product['stock_quantity'] ?> exemplaire<?= $product['stock_quantity'] > 1 ? 's' : '' ?> disponible<?= $product['stock_quantity'] > 1 ? 's' : '' ?> !
+                    </p>
+                </div>
+                <?php endif; ?>
+
                 <!-- PRIX -->
                 <div style="margin-bottom:1.5rem; padding:1.5rem; background:var(--white); border:1px solid var(--blush);">
-                    <div style="display:flex; align-items:baseline; gap:0.5rem; margin-bottom:0.75rem;">
-                        <span style="font-family:var(--font-display); font-size:2.2rem; font-weight:600; color:var(--obsidian);">
-                            <?= number_format($product['price'], 0, ',', ' ') ?>
+                    <div style="display:flex; align-items:baseline; gap:0.6rem; margin-bottom:0.75rem; flex-wrap:wrap;">
+                        <span style="font-family:var(--font-display); font-size:2.2rem; font-weight:600; color:<?= $isPromo ? '#C0392B' : 'var(--obsidian)' ?>;">
+                            <?= number_format($finalPrice, 0, ',', ' ') ?>
                         </span>
                         <span style="font-size:0.85rem; color:var(--mist); letter-spacing:0.05em;">FCFA</span>
+                        <?php if ($isPromo): ?>
+                        <span style="font-size:1.1rem; color:var(--mist); text-decoration:line-through;">
+                            <?= number_format($product['price'], 0, ',', ' ') ?> FCFA
+                        </span>
+                        <?php endif; ?>
                     </div>
 
                     <!-- Détail acompte -->
@@ -88,13 +115,13 @@
                         <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem;">
                             <span style="font-size:0.78rem; color:var(--mist);">Acompte à payer maintenant (50%)</span>
                             <span style="font-size:0.82rem; font-weight:500; color:var(--gold);">
-                                <?= number_format($product['price'] * 0.5, 0, ',', ' ') ?> FCFA
+                                <?= number_format($finalPrice * 0.5, 0, ',', ' ') ?> FCFA
                             </span>
                         </div>
                         <div style="display:flex; justify-content:space-between;">
                             <span style="font-size:0.78rem; color:var(--mist);">Reste à payer à la livraison</span>
                             <span style="font-size:0.82rem; color:var(--mist);">
-                                <?= number_format($product['price'] * 0.5, 0, ',', ' ') ?> FCFA
+                                <?= number_format($finalPrice * 0.5, 0, ',', ' ') ?> FCFA
                             </span>
                         </div>
                     </div>
@@ -158,10 +185,20 @@
                         </div>
                     </div>
 
-                    <!-- Bouton ajouter au panier -->
+                   <!-- Bouton ajouter au panier -->
                     <button type="button" id="add-cart-btn" class="btn btn-primary btn-add-to-cart"
                             style="width:100%; padding:1.1rem; font-size:0.78rem; margin-bottom:0.75rem;">
                         Ajouter au panier
+                    </button>
+
+                    <!-- Bouton Commander maintenant (achat direct) -->
+                    <button type="button" id="buy-now-btn"
+                            style="width:100%; padding:1.1rem; font-size:0.78rem; letter-spacing:0.15em;
+                                   text-transform:uppercase; background:var(--gold); color:white; border:none;
+                                   cursor:pointer; margin-bottom:0.75rem; transition:background 0.2s;"
+                            onmouseover="this.style.background='#9c7d44'"
+                            onmouseout="this.style.background='var(--gold)'">
+                         Commander maintenant
                     </button>
 
                     <!-- Message confirmation -->
@@ -291,6 +328,57 @@ document.getElementById('add-cart-btn').addEventListener('click', async () => {
     } catch(e) {
         btn.textContent = 'Erreur — Réessayer';
         btn.disabled    = false;
+    }
+});
+// ── Numéro WhatsApp Business ──────────────────────────────
+const whatsappNumber = '22890128638';
+
+// ── Construire le message WhatsApp (étape panier) ───────────
+function buildWhatsAppMessage() {
+    const productName = <?= json_encode($product['name']) ?>;
+    const finalPrice   = <?= $finalPrice ?>;
+    const qty          = parseInt(document.getElementById('qty-input')?.value || 1);
+    const total         = finalPrice * qty;
+
+    const message = `Bonjour Riyaa's Collection, je souhaite commander : ${productName}, Quantité : ${qty}, Prix : ${total.toLocaleString('fr-FR')} FCFA.`;
+    return `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+}
+
+// Mettre à jour le lien WhatsApp dynamiquement
+const whatsappBtn = document.getElementById('whatsapp-btn');
+if (whatsappBtn) {
+    whatsappBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.open(buildWhatsAppMessage(), '_blank');
+    });
+}
+
+// ── Bouton "Commander maintenant" — achat direct ────────────
+document.getElementById('buy-now-btn').addEventListener('click', async () => {
+    const form = document.getElementById('add-to-cart-form');
+    const btn  = document.getElementById('buy-now-btn');
+
+    btn.textContent = 'Redirection...';
+    btn.disabled = true;
+
+    try {
+        // Ajouter au panier d'abord
+        const res = await fetch('<?= APP_URL ?>/panier/ajouter', {
+            method: 'POST',
+            body: new FormData(form)
+        });
+        const json = await res.json();
+
+        if (json.success) {
+            // Rediriger directement vers le checkout
+            window.location.href = '<?= APP_URL ?>/commander';
+        } else {
+            btn.textContent = 'Erreur — Réessayer';
+            btn.disabled = false;
+        }
+    } catch (e) {
+        btn.textContent = 'Erreur réseau';
+        btn.disabled = false;
     }
 });
 </script>

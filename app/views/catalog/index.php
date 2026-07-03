@@ -71,28 +71,50 @@
                                 <div class="product-image-placeholder"></div>
                             <?php endif; ?>
 
+                            <?php if (!empty($p['en_promotion']) && !empty($p['prix_promotion'])): ?>
+                            <span class="product-badge" style="background:#C0392B; color:white; left:auto; right:1rem;">
+                                PROMO
+                            </span>
+                            <?php endif; ?>
                             <span class="product-badge">
                                 <?= $p['stock_status'] === 'made_to_order' ? 'Sur commande' : 'Disponible' ?>
                             </span>
                         </div>
 
-                        <!-- Infos + PRIX -->
+                       <!-- Infos + PRIX -->
                         <div class="product-info">
                             <p class="product-category"><?= htmlspecialchars($p['category_name']) ?></p>
                             <h3 class="product-name"><?= htmlspecialchars($p['name']) ?></h3>
 
+                            <?php
+                            $isPromo   = !empty($p['en_promotion']) && !empty($p['prix_promotion']);
+                            $finalPrice = $isPromo ? $p['prix_promotion'] : $p['price'];
+                            ?>
+
                             <!-- PRIX bien visible -->
-                            <div style="display:flex; align-items:baseline; gap:0.5rem; margin-top:0.5rem;">
-                                <span style="font-family:var(--font-display); font-size:1.4rem; font-weight:600; color:var(--obsidian);">
-                                    <?= number_format($p['price'], 0, ',', ' ') ?>
+                            <div style="display:flex; align-items:baseline; gap:0.6rem; margin-top:0.5rem; flex-wrap:wrap;">
+                                <span style="font-family:var(--font-display); font-size:1.4rem; font-weight:600; color:<?= $isPromo ? '#C0392B' : 'var(--obsidian)' ?>;">
+                                    <?= number_format($finalPrice, 0, ',', ' ') ?>
                                 </span>
                                 <span style="font-size:0.75rem; color:var(--mist); letter-spacing:0.05em;">FCFA</span>
+                                <?php if ($isPromo): ?>
+                                <span style="font-size:0.85rem; color:var(--mist); text-decoration:line-through;">
+                                    <?= number_format($p['price'], 0, ',', ' ') ?> FCFA
+                                </span>
+                                <?php endif; ?>
                             </div>
 
                             <!-- Acompte -->
                             <p style="font-size:0.72rem; color:var(--gold); margin-top:0.3rem;">
-                                Acompte : <?= number_format($p['price'] * 0.5, 0, ',', ' ') ?> FCFA
+                                Acompte : <?= number_format($finalPrice * 0.5, 0, ',', ' ') ?> FCFA
                             </p>
+
+                            <!-- Stock bas -->
+                            <?php if (!empty($p['stock_quantity']) && $p['stock_quantity'] <= ($p['seuil_alerte_stock'] ?? 3)): ?>
+                            <p style="font-size:0.72rem; color:#C0392B; font-weight:500; margin-top:0.3rem;">
+                                🔥 Plus que <?= $p['stock_quantity'] ?> exemplaire<?= $p['stock_quantity'] > 1 ? 's' : '' ?> !
+                            </p>
+                            <?php endif; ?>
 
                             <!-- Délai -->
                             <p style="font-size:0.7rem; color:var(--mist); margin-top:0.2rem; letter-spacing:0.05em;">

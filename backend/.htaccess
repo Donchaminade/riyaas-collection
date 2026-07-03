@@ -1,0 +1,22 @@
+Options -Indexes
+
+# Headers de sécurité
+Header always set X-Content-Type-Options "nosniff"
+Header always set X-Frame-Options "DENY"
+Header always set X-XSS-Protection "1; mode=block"
+Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+# CORS preflight
+RewriteEngine On
+RewriteCond %{REQUEST_METHOD} OPTIONS
+RewriteRule ^(.*)$ $1 [R=200,L]
+
+# Bloquer l'accès aux fichiers sensibles
+<FilesMatch "\.(env|log|sql|json|lock)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Bloquer l'accès direct au dossier config
+RewriteRule ^config/ - [F,L]
+RewriteRule ^middleware/ - [F,L]

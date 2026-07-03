@@ -73,12 +73,16 @@ class AdminController extends Controller
     {
         $this->requireAdmin();
 
-        $name        = trim($_POST['name'] ?? '');
-        $categoryId  = (int) ($_POST['category_id'] ?? 0);
-        $description = trim($_POST['description'] ?? '');
-        $price       = (float) ($_POST['price'] ?? 0);
-        $material    = trim($_POST['material'] ?? 'Soie naturelle 100%');
-        $isFeatured  = isset($_POST['is_featured']) ? 1 : 0;
+       $name             = trim($_POST['name'] ?? '');
+        $categoryId       = (int) ($_POST['category_id'] ?? 0);
+        $description      = trim($_POST['description'] ?? '');
+        $price            = (float) ($_POST['price'] ?? 0);
+        $material         = trim($_POST['material'] ?? 'Soie naturelle 100%');
+        $isFeatured       = isset($_POST['is_featured']) ? 1 : 0;
+        $enPromotion      = isset($_POST['en_promotion']) ? 1 : 0;
+        $prixPromotion    = !empty($_POST['prix_promotion']) ? (float) $_POST['prix_promotion'] : null;
+        $stockQuantity    = !empty($_POST['stock_quantity']) ? (int) $_POST['stock_quantity'] : null;
+        $seuilAlerte      = !empty($_POST['seuil_alerte_stock']) ? (int) $_POST['seuil_alerte_stock'] : 3;
 
         if (!$name || !$categoryId || $price <= 0) {
             $this->redirect('/admin/produit/ajouter');
@@ -88,10 +92,10 @@ class AdminController extends Controller
         $db   = getDB();
 
         $stmt = $db->prepare("
-            INSERT INTO products (category_id, name, slug, description, material, price, is_featured, stock_status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, 'made_to_order')
+            INSERT INTO products (category_id, name, slug, description, material, price, is_featured, stock_status, en_promotion, prix_promotion, stock_quantity, seuil_alerte_stock)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'made_to_order', ?, ?, ?, ?)
         ");
-        $stmt->execute([$categoryId, $name, $slug, $description, $material, $price, $isFeatured]);
+        $stmt->execute([$categoryId, $name, $slug, $description, $material, $price, $isFeatured, $enPromotion, $prixPromotion, $stockQuantity, $seuilAlerte]);
         $productId = (int) $db->lastInsertId();
 
         if (!empty($_FILES['images']['name'][0])) {
@@ -135,18 +139,24 @@ class AdminController extends Controller
     public function update(): void
     {
         $this->requireAdmin();
-        $id          = (int) ($_POST['id'] ?? 0);
-        $name        = trim($_POST['name'] ?? '');
-        $categoryId  = (int) ($_POST['category_id'] ?? 0);
-        $description = trim($_POST['description'] ?? '');
-        $price       = (float) ($_POST['price'] ?? 0);
-        $material    = trim($_POST['material'] ?? 'Soie naturelle 100%');
-        $isFeatured  = isset($_POST['is_featured']) ? 1 : 0;
+        $id               = (int) ($_POST['id'] ?? 0);
+        $name             = trim($_POST['name'] ?? '');
+        $categoryId       = (int) ($_POST['category_id'] ?? 0);
+        $description      = trim($_POST['description'] ?? '');
+        $price            = (float) ($_POST['price'] ?? 0);
+        $material         = trim($_POST['material'] ?? 'Soie naturelle 100%');
+        $isFeatured       = isset($_POST['is_featured']) ? 1 : 0;
+        $enPromotion      = isset($_POST['en_promotion']) ? 1 : 0;
+        $prixPromotion    = !empty($_POST['prix_promotion']) ? (float) $_POST['prix_promotion'] : null;
+        $stockQuantity    = !empty($_POST['stock_quantity']) ? (int) $_POST['stock_quantity'] : null;
+        $seuilAlerte      = !empty($_POST['seuil_alerte_stock']) ? (int) $_POST['seuil_alerte_stock'] : 3;
 
         $db = getDB();
         $db->prepare("
-            UPDATE products SET name=?, category_id=?, description=?, price=?, material=?, is_featured=? WHERE id=?
-        ")->execute([$name, $categoryId, $description, $price, $material, $isFeatured, $id]);
+            UPDATE products SET name=?, category_id=?, description=?, price=?, material=?, is_featured=?,
+                en_promotion=?, prix_promotion=?, stock_quantity=?, seuil_alerte_stock=?
+            WHERE id=?
+        ")->execute([$name, $categoryId, $description, $price, $material, $isFeatured, $enPromotion, $prixPromotion, $stockQuantity, $seuilAlerte, $id]);
 
         if (!empty($_FILES['images']['name'][0])) {
             $this->handleImageUpload($id, $_FILES['images']);

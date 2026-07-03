@@ -58,12 +58,32 @@
                         </select>
                     </div>
 
-                    <!-- Prix -->
+                  <!-- Prix -->
                     <div class="form-group">
                         <label>Prix (FCFA) *</label>
                         <input type="number" name="price" required min="0" step="500"
                                value="<?= $product['price'] ?? '' ?>"
                                placeholder="Ex: 45000">
+                    </div>
+
+                    <!-- Stock -->
+                    <div class="form-group">
+                        <label>Quantité en stock</label>
+                        <input type="number" name="stock_quantity" min="0"
+                               value="<?= $product['stock_quantity'] ?? '' ?>"
+                               placeholder="Ex: 8">
+                    </div>
+
+                    <!-- Seuil alerte stock -->
+                    <div class="form-group">
+                        <label>Alerte stock bas (en dessous de)</label>
+                        <input type="number" name="seuil_alerte_stock" min="0"
+                               value="<?= $product['seuil_alerte_stock'] ?? 3 ?>"
+                               placeholder="Ex: 3">
+                        <p style="font-size:0.72rem; color:#9B9490; margin-top:0.4rem;">
+                            Affiche "Stock limité" si la quantité passe sous ce chiffre
+                        </p>
+                    </div>
                     </div>
 
                     <!-- Matière -->
@@ -107,7 +127,7 @@
                         </p>
                     </div>
 
-                    <!-- Mis en avant -->
+                  <!-- Mis en avant -->
                     <div class="form-group">
                         <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; text-transform:none; letter-spacing:0;">
                             <input type="checkbox" name="is_featured" value="1"
@@ -115,6 +135,23 @@
                                    style="width:auto; accent-color: #B8975A;">
                             <span style="font-size:0.82rem; color:#1A1714;">Afficher en page d'accueil ⭐</span>
                         </label>
+                    </div>
+
+                    <!-- Promotion -->
+                    <div class="form-group full" style="background:#fef3e2; padding:1.2rem; border-left:3px solid #B8600A;">
+                        <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; text-transform:none; letter-spacing:0; margin-bottom:1rem;">
+                            <input type="checkbox" name="en_promotion" value="1" id="promo-checkbox"
+                                   <?= (!empty($product['en_promotion'])) ? 'checked' : '' ?>
+                                   onchange="document.getElementById('promo-price-wrap').style.display = this.checked ? 'block' : 'none'"
+                                   style="width:auto; accent-color: #B8600A;">
+                            <span style="font-size:0.85rem; font-weight:500; color:#B8600A;">🔥 Activer la promotion</span>
+                        </label>
+                        <div id="promo-price-wrap" style="display:<?= !empty($product['en_promotion']) ? 'block' : 'none' ?>;">
+                            <label>Prix promo (FCFA)</label>
+                            <input type="number" name="prix_promotion" min="0" step="500"
+                                   value="<?= $product['prix_promotion'] ?? '' ?>"
+                                   placeholder="Ex: 30000">
+                        </div>
                     </div>
 
                 </div>

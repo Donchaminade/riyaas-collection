@@ -118,7 +118,7 @@
                     </div>
 
                     <div class="summary-line deposit">
-                        <span>💳 Acompte à payer maintenant (50%)</span>
+                        <span> Acompte à payer maintenant (50%)</span>
                         <span><?= number_format($deposit, 0, ',', ' ') ?> FCFA</span>
                     </div>
 
@@ -145,15 +145,32 @@
                         ⏱ Livraison garantie sous <strong>5 jours</strong>
                     </p>
 
-                    <!-- Bouton commander -->
-                    <a href="<?= APP_URL ?>/commander" class="btn btn-primary" style="width:100%; text-align:center; display:block; padding:1.1rem;">
-                        Commander et payer l'acompte
+                    <a href="#" id="whatsapp-cart-btn" target="_blank"
+                       style="display:flex; align-items:center; justify-content:center; gap:0.5rem;
+                              width:100%; padding:1rem; background:#25D366; color:white; text-decoration:none;
+                              font-size:0.78rem; letter-spacing:0.1em; text-transform:uppercase; font-weight:500;">
+                         Commander via WhatsApp
                     </a>
 
-                    <!-- TMoney logo text -->
-                    <p style="text-align:center; font-size:0.7rem; color:var(--mist); margin-top:1rem; letter-spacing:0.08em;">
-                        Paiement sécurisé via <strong>TMoney</strong>
+                    <p style="text-align:center; font-size:0.7rem; color:var(--mist); margin-top:1rem;">
+                        Paiement sécurisé via <strong>TMoney</strong> · Livraison sous <strong>5 jours</strong>
                     </p>
+
+                    <script>
+                    document.getElementById('whatsapp-cart-btn').addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const whatsappNumber = '22890128638';
+                        let lines = [];
+                        <?php foreach ($cart as $item): ?>
+                        lines.push('- <?= addslashes($item['product_name']) ?> (Quantité : <?= $item['quantity'] ?>)');
+                        <?php endforeach; ?>
+
+                        const message = "Bonjour Riyaa's Collection, je souhaite commander :\n" + lines.join('\n') +
+                            "\nTotal : <?= number_format($total, 0, '', ' ') ?> FCFA";
+
+                        window.open('https://wa.me/' + whatsappNumber + '?text=' + encodeURIComponent(message), '_blank');
+                    });
+                    </script>
                 </div>
 
             </div>
