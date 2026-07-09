@@ -37,14 +37,14 @@ const AdminAuth = {
 
     logout() {
         AdminAuth.clear();
-        location.href = 'login.html';
+        location.href = '/admin/login';
     },
 
     // À appeler en haut de chaque page admin protégée
     async requireAuth() {
         if (!(await AdminAuth.verify())) {
             AdminAuth.clear();
-            location.href = 'login.html';
+            location.href = '/admin/login';
         }
     },
 };
@@ -69,7 +69,7 @@ async function adminApi(action, { method = 'GET', body = null, formData = null, 
 
     if (res.status === 401) {
         AdminAuth.clear();
-        location.href = 'login.html';
+        location.href = '/admin/login';
         throw new Error('Session expirée');
     }
     if (!res.ok || json.success === false) {

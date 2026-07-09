@@ -8,7 +8,7 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/admin.css">
+    <link rel="stylesheet" href="/admin/assets/admin.css">
 </head>
 <body>
 
@@ -30,19 +30,19 @@
         </form>
 
         <p style="margin-top:2rem;">
-            <a href="../index.html" style="font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--mist);">
+            <a href="/" style="font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--mist);">
                 ← Retour à la boutique
             </a>
         </p>
     </div>
 </div>
 
-<script src="../assets/js/config.js"></script>
-<script src="assets/admin.js"></script>
+<script src="/assets/js/config.js"></script>
+<script src="/admin/assets/admin.js"></script>
 <script>
 // Si déjà connecté, rediriger vers le dashboard
 AdminAuth.verify().then(valid => {
-    if (valid) location.href = 'index.html';
+    if (valid) location.href = '/admin';
 });
 
 document.getElementById('login-form').addEventListener('submit', async (e) => {
@@ -56,7 +56,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
 
     try {
         await AdminAuth.login(document.getElementById('password').value);
-        location.href = 'index.html';
+        location.href = '/admin';
     } catch (err) {
         errorEl.textContent   = err.message || 'Mot de passe incorrect.';
         errorEl.style.display = 'block';

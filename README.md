@@ -30,9 +30,21 @@ riyaas-collection/
 1. Démarrer Apache + MySQL dans XAMPP
 2. Importer `backend/db.sql` via phpMyAdmin (crée la base `riyaas_collection`)
 3. Boutique : `http://localhost/riyaas-collection/frontend/index.html`
-4. Admin : `http://localhost/riyaas-collection/frontend/admin/login.html` (mot de passe dev : `riyaas2024`)
+4. Admin : le dossier `admin/` utilise des chemins absolus (`/admin/...`, `/assets/...`) pour
+   fonctionner correctement une fois déployé à la racine du domaine sur Vercel — il ne
+   s'affiche donc pas correctement sous le sous-chemin XAMPP (`/riyaas-collection/frontend/`).
+   Pour tester l'admin en local dans les mêmes conditions qu'en production, lancer un serveur
+   PHP à la racine du dossier `frontend/` :
 
-L'URL de l'API en local est détectée automatiquement (`frontend/assets/js/config.js`).
+   ```
+   php -S localhost:8099 -t frontend
+   ```
+
+   puis ouvrir `http://localhost:8099/admin/login` (mot de passe dev : `riyaas2024`).
+   Les pages boutique (chemins relatifs) restent utilisables via l'URL XAMPP classique.
+
+L'URL de l'API en local est détectée automatiquement (`frontend/assets/js/config.js`) — elle
+fonctionne dans les deux cas de figure ci-dessus (XAMPP ou serveur PHP autonome).
 
 ## Déploiement
 

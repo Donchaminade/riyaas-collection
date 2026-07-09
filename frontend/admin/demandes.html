@@ -8,7 +8,7 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/admin.css">
+    <link rel="stylesheet" href="/admin/assets/admin.css">
 </head>
 <body>
 
@@ -19,11 +19,11 @@
             <span class="logo-sub">Administration</span>
         </div>
         <nav class="admin-nav">
-            <a href="index.html">Produits</a>
-            <a href="commandes.html">Commandes</a>
-            <a href="demandes.html" class="active">Demandes</a>
-            <a href="statistiques.html">Statistiques</a>
-            <a href="../index.html" target="_blank">Voir la boutique</a>
+            <a href="/admin">Produits</a>
+            <a href="/admin/commandes">Commandes</a>
+            <a href="/admin/demandes" class="active">Demandes</a>
+            <a href="/admin/statistiques">Statistiques</a>
+            <a href="/" target="_blank">Voir la boutique</a>
             <a href="#" onclick="AdminAuth.logout(); return false;" class="logout">Déconnexion</a>
         </nav>
     </aside>
@@ -37,8 +37,8 @@
     </main>
 </div>
 
-<script src="../assets/js/config.js"></script>
-<script src="assets/admin.js"></script>
+<script src="/assets/js/config.js"></script>
+<script src="/admin/assets/admin.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', async () => {
     await AdminAuth.requireAuth();

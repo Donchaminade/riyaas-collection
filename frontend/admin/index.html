@@ -8,7 +8,7 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/admin.css">
+    <link rel="stylesheet" href="/admin/assets/admin.css">
 </head>
 <body>
 
@@ -19,11 +19,11 @@
             <span class="logo-sub">Administration</span>
         </div>
         <nav class="admin-nav">
-            <a href="index.html" class="active">Produits</a>
-            <a href="commandes.html">Commandes</a>
-            <a href="demandes.html">Demandes</a>
-            <a href="statistiques.html">Statistiques</a>
-            <a href="../index.html" target="_blank">Voir la boutique</a>
+            <a href="/admin" class="active">Produits</a>
+            <a href="/admin/commandes">Commandes</a>
+            <a href="/admin/demandes">Demandes</a>
+            <a href="/admin/statistiques">Statistiques</a>
+            <a href="/" target="_blank">Voir la boutique</a>
             <a href="#" onclick="AdminAuth.logout(); return false;" class="logout">Déconnexion</a>
         </nav>
     </aside>
@@ -34,7 +34,7 @@
         <div class="stats-grid" id="stats-grid"></div>
 
         <p style="margin:-1.5rem 0 2.5rem; text-align:right;">
-            <a href="statistiques.html" style="display:inline-flex; align-items:center; gap:0.4rem; font-size:0.72rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--gold); font-weight:500;">
+            <a href="/admin/statistiques" style="display:inline-flex; align-items:center; gap:0.4rem; font-size:0.72rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--gold); font-weight:500;">
                 Voir les statistiques détaillées
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
             </a>
@@ -42,7 +42,7 @@
 
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
             <h2 style="font-family:var(--font-display); font-size:1.3rem; font-weight:400;">Produits</h2>
-            <a href="produit-form.html" class="btn btn-gold">+ Ajouter un produit</a>
+            <a href="/admin/produit-form" class="btn btn-gold">+ Ajouter un produit</a>
         </div>
 
         <div id="products-container">
@@ -51,8 +51,8 @@
     </main>
 </div>
 
-<script src="../assets/js/config.js"></script>
-<script src="assets/admin.js"></script>
+<script src="/assets/js/config.js"></script>
+<script src="/admin/assets/admin.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', async () => {
     await AdminAuth.requireAuth();
@@ -185,8 +185,8 @@ function renderProducts() {
                         </label>
                     </td>
                     <td style="white-space:nowrap;">
-                        <a href="../produit.html?slug=${encodeURIComponent(p.slug)}" target="_blank" rel="noopener" class="icon-btn" title="Voir la fiche publique">${ICONS.eye}</a>
-                        <a href="produit-form.html?id=${p.id}" class="icon-btn" title="Modifier">${ICONS.pencil}</a>
+                        <a href="/produit?slug=${encodeURIComponent(p.slug)}" target="_blank" rel="noopener" class="icon-btn" title="Voir la fiche publique">${ICONS.eye}</a>
+                        <a href="/admin/produit-form?id=${p.id}" class="icon-btn" title="Modifier">${ICONS.pencil}</a>
                         <button onclick="deleteProduct(${p.id}, '${esc(p.name).replace(/'/g, "\\'")}')" class="icon-btn icon-btn-danger" title="Supprimer définitivement">${ICONS.trash}</button>
                     </td>
                 </tr>`).join('')}
