@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin — Demandes sur mesure — Riyaa's Collection</title>
+    <meta name="robots" content="noindex">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/admin.css">
+</head>
+<body>
+
+<div class="admin-layout">
+    <aside class="admin-sidebar">
+        <div class="logo">
+            <span class="logo-main">Riyaa's</span>
+            <span class="logo-sub">Administration</span>
+        </div>
+        <nav class="admin-nav">
+            <a href="index.html">Produits</a>
+            <a href="commandes.html">Commandes</a>
+            <a href="demandes.html" class="active">Demandes</a>
+            <a href="statistiques.html">Statistiques</a>
+            <a href="../index.html" target="_blank">Voir la boutique</a>
+            <a href="#" onclick="AdminAuth.logout(); return false;" class="logout">Déconnexion</a>
+        </nav>
+    </aside>
+
+    <main class="admin-main">
+        <h1 class="admin-title">Demandes sur mesure</h1>
+
+        <div id="requests-container">
+            <p style="color:var(--mist); padding:2rem 0;">Chargement…</p>
+        </div>
+    </main>
+</div>
+
+<script src="../assets/js/config.js"></script>
+<script src="assets/admin.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    await AdminAuth.requireAuth();
+    loadRequests();
+});
+
+async function loadRequests() {
+    const container = document.getElementById('requests-container');
+    try {
+        const { data: requests } = await AdminAPI.requests();
+
+        if (!requests.length) {
+            container.innerHTML = '<p style="color:var(--mist); padding:2rem 0;">Aucune demande sur mesure pour l\'instant.</p>';
+            return;
+        }
+
+        container.innerHTML = requests.map(r => {
+            const status = REQUEST_STATUSES[r.status] || { label: r.status, color: 'var(--mist)' };
+            return `
+            <div style="background:var(--white); border:1px solid var(--blush); margin-bottom:1.2rem;">
+
+                <!-- En-tête demande -->
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; padding:1.2rem 1.5rem; border-bottom:1px solid var(--blush);">
+                    <div>
+                        <strong style="font-family:var(--font-display); font-size:1.1rem;">${esc(r.request_number)}</strong>
+                        <span style="font-size:0.75rem; color:var(--mist); margin-left:1rem;">
+                            ${new Date(r.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:0.8rem;">
+                        <span class="badge" style="background:${status.color};">${status.label}</span>
+                        <select onchange="changeStatus(${r.id}, this)" style="padding:0.4rem 0.8rem; border:1px solid var(--blush); font-family:var(--font-body); font-size:0.78rem; background:var(--white); cursor:pointer;">
+                            ${Object.entries(REQUEST_STATUSES).map(([key, s]) =>
+                                `<option value="${key}" ${key === r.status ? 'selected' : ''}>${s.label}</option>`).join('')}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Corps -->
+                <div style="display:grid; grid-template-columns:${r.image_url ? '150px 1fr 1fr' : '1fr 1fr'}; gap:1.5rem; padding:1.2rem 1.5rem;">
+                    ${r.image_url ? `
+                    <div>
+                        <p style="font-size:0.65rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--mist); margin-bottom:0.5rem;">Photo de référence</p>
+                        <a href="${r.image_url}" target="_blank" rel="noopener" title="Ouvrir l'image en grand">
+                            <img src="${r.image_url}" style="width:130px; height:160px; object-fit:cover; border:1px solid var(--blush);">
+                        </a>
+                    </div>` : ''}
+                    <div>
+                        <p style="font-size:0.65rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--mist); margin-bottom:0.5rem;">Cliente</p>
+                        <p style="font-size:0.9rem; font-weight:400;">${esc(r.customer_name)}</p>
+                        <p style="font-size:0.82rem; color:var(--mist); display:flex; align-items:center; gap:0.4rem;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                            <span>${esc(r.customer_phone)}</span>
+                        </p>
+                        <a href="https://wa.me/${encodeURIComponent(r.customer_phone.replace(/\D/g, ''))}" target="_blank" rel="noopener"
+                           style="display:inline-block; margin-top:0.5rem; font-size:0.72rem; letter-spacing:0.08em; text-transform:uppercase; color:#25D366; border:1px solid #25D366; padding:0.3rem 0.8rem;">
+                            Répondre sur WhatsApp
+                        </a>
+                    </div>
+                    <div>
+                        <p style="font-size:0.65rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--mist); margin-bottom:0.5rem;">Pièce recherchée</p>
+                        <p style="font-size:0.85rem; white-space:pre-wrap;">${esc(r.description)}</p>
+                        ${r.budget !== null ? `
+                        <p style="font-size:0.82rem; color:var(--gold); margin-top:0.6rem;">
+                            Budget approximatif : ${Number(r.budget).toLocaleString('fr-FR')} FCFA
+                        </p>` : ''}
+                    </div>
+                </div>
+
+                <!-- Notes admin -->
+                <div style="padding:1rem 1.5rem; border-top:1px solid var(--blush); background:var(--ivory);">
+                    <p style="font-size:0.65rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--mist); margin-bottom:0.5rem;">Notes internes</p>
+                    <div style="display:flex; gap:0.8rem; align-items:flex-start;">
+                        <textarea id="notes-${r.id}" rows="2" placeholder="Ex: Soie dispo en vert, devis 35 000 FCFA envoyé le 04/07…"
+                                  style="flex:1; padding:0.6rem 0.8rem; border:1px solid var(--blush); font-family:var(--font-body); font-size:0.82rem; font-weight:300; resize:vertical; background:var(--white);">${esc(r.admin_notes || '')}</textarea>
+                        <button onclick="saveNotes(${r.id}, '${r.status}')" class="btn btn-primary btn-sm" style="margin-top:0.2rem;">Enregistrer</button>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+    } catch (e) {
+        container.innerHTML = `<p class="alert alert-error">Erreur de chargement : ${esc(e.message)}</p>`;
+    }
+}
+
+async function changeStatus(requestId, select) {
+    const previous = select.dataset.previous || select.value;
+    try {
+        const notes = document.getElementById(`notes-${requestId}`)?.value ?? '';
+        await AdminAPI.updateRequestStatus(requestId, select.value, notes);
+        loadRequests();
+    } catch (e) {
+        alert('Erreur : ' + e.message);
+        select.value = previous;
+    }
+}
+
+async function saveNotes(requestId, status) {
+    try {
+        const notes = document.getElementById(`notes-${requestId}`).value;
+        await AdminAPI.updateRequestStatus(requestId, status, notes);
+        loadRequests();
+    } catch (e) {
+        alert('Erreur : ' + e.message);
+    }
+}
+
+function esc(str) {
+    const div = document.createElement('div');
+    div.textContent = str ?? '';
+    return div.innerHTML;
+}
+</script>
+
+</body>
+</html>

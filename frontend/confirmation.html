@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Commande confirmée — Riyaa's Collection</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<main id="main-content">
+    <section style="padding:5rem 0 6rem; background:var(--ivory); min-height:60vh;">
+        <div class="container" style="max-width:640px;">
+            <div id="confirmation-container" style="text-align:center;">
+                <p style="color:var(--mist);">Chargement…</p>
+            </div>
+        </div>
+    </section>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/cart.js"></script>
+<script src="assets/js/layout.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const container = document.getElementById('confirmation-container');
+    let order = null;
+    try {
+        order = JSON.parse(sessionStorage.getItem('riyaas_last_order'));
+    } catch {}
+
+    if (!order) {
+        container.innerHTML = `
+            <p style="font-family:var(--font-display); font-size:1.5rem; color:var(--mist); margin-bottom:2rem;">
+                Aucune commande récente à afficher.
+            </p>
+            <a href="catalogue.html" class="btn btn-primary">Voir le catalogue</a>`;
+        return;
+    }
+
+    // Sécurité : la commande est passée, le panier doit être vide
+    Cart.clear();
+
+    container.innerHTML = `
+        <div style="width:72px; height:72px; margin:0 auto 2rem; border-radius:50%; background:#e8f5ee; display:flex; align-items:center; justify-content:center;">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#2E7D52" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+        </div>
+
+        <h1 style="font-family:var(--font-display); font-size:clamp(2rem,4vw,2.8rem); font-weight:300; margin-bottom:1rem;">
+            Merci, ${escapeHtml(order.customer)} !
+        </h1>
+        <p style="font-size:0.9rem; color:var(--mist); margin-bottom:2.5rem;">
+            Votre commande a bien été enregistrée.
+        </p>
+
+        <div style="background:var(--white); border:1px solid var(--blush); padding:2rem; text-align:left; margin-bottom:2rem;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:0.8rem; font-size:0.88rem;">
+                <span style="color:var(--mist);">N° de commande</span>
+                <strong>${escapeHtml(order.order_number)}</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:0.8rem; font-size:0.88rem;">
+                <span style="color:var(--mist);">Total</span>
+                <strong>${formatPrice(order.total)} ${CONFIG.CURRENCY}</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:0.8rem; font-size:0.88rem; padding:0.8rem; background:var(--ivory); border-left:3px solid var(--gold);">
+                <span style="color:var(--gold); font-weight:500;">Acompte à envoyer (TMoney ${CONFIG.TMONEY_NUMBER})</span>
+                <strong style="color:var(--gold);">${formatPrice(order.deposit)} ${CONFIG.CURRENCY}</strong>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:0.8rem; font-size:0.88rem;">
+                <span style="color:var(--mist);">Reste à la livraison</span>
+                <span>${formatPrice(order.balance)} ${CONFIG.CURRENCY}</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-size:0.88rem;">
+                <span style="color:var(--mist);">Livraison prévue</span>
+                <strong>${escapeHtml(order.delivery_date)}</strong>
+            </div>
+        </div>
+
+        <p style="font-size:0.82rem; color:var(--mist); line-height:1.8; margin-bottom:2.5rem;">
+            Envoyez votre acompte de <strong style="color:var(--gold);">${formatPrice(order.deposit)} ${CONFIG.CURRENCY}</strong>
+            par TMoney au <strong>${CONFIG.TMONEY_NUMBER}</strong> pour lancer la confection.<br>
+            Si la fenêtre WhatsApp ne s'est pas ouverte,
+            <a href="#" id="reopen-whatsapp" style="color:var(--gold); text-decoration:underline;">cliquez ici pour renvoyer le récapitulatif</a>.
+        </p>
+
+        <a href="catalogue.html" class="btn btn-primary">Continuer mes achats</a>`;
+
+    document.getElementById('reopen-whatsapp').addEventListener('click', (e) => {
+        e.preventDefault();
+        const lines = (order.items || []).map(i =>
+            `- ${i.product_name}${i.size ? ' (Taille ' + i.size + ')' : ''}${i.color ? ' (Couleur ' + i.color + ')' : ''} (Quantité : ${i.quantity})`);
+        const message =
+            "Bonjour Riyaa's Collection, voici ma commande officielle :\n" +
+            `N° de commande : ${order.order_number}\n` +
+            lines.join('\n') + "\n" +
+            `Total : ${formatPrice(order.total)} ${CONFIG.CURRENCY}\n` +
+            `Acompte TMoney (${CONFIG.DEPOSIT_PERCENT}%) : ${formatPrice(order.deposit)} ${CONFIG.CURRENCY}`;
+        window.open(`https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
+    });
+});
+</script>
+
+</body>
+</html>

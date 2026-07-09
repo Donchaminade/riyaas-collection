@@ -3,20 +3,20 @@ Options -Indexes
 # Headers de sécurité
 Header always set X-Content-Type-Options "nosniff"
 Header always set X-Frame-Options "DENY"
-Header always set X-XSS-Protection "1; mode=block"
 Header always set Referrer-Policy "strict-origin-when-cross-origin"
 
-# CORS preflight
 RewriteEngine On
-RewriteCond %{REQUEST_METHOD} OPTIONS
-RewriteRule ^(.*)$ $1 [R=200,L]
+
+# Transmettre le header Authorization à PHP (nécessaire en CGI/FastCGI — Hostinger)
+RewriteCond %{HTTP:Authorization} .
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
 # Bloquer l'accès aux fichiers sensibles
 <FilesMatch "\.(env|log|sql|json|lock)$">
-    Order allow,deny
-    Deny from all
+    Require all denied
 </FilesMatch>
 
-# Bloquer l'accès direct au dossier config
+# Bloquer l'accès HTTP direct aux dossiers internes
 RewriteRule ^config/ - [F,L]
 RewriteRule ^middleware/ - [F,L]
+RewriteRule ^lib/ - [F,L]

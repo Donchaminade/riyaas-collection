@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin — Produits — Riyaa's Collection</title>
+    <meta name="robots" content="noindex">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/admin.css">
+</head>
+<body>
+
+<div class="admin-layout">
+    <aside class="admin-sidebar">
+        <div class="logo">
+            <span class="logo-main">Riyaa's</span>
+            <span class="logo-sub">Administration</span>
+        </div>
+        <nav class="admin-nav">
+            <a href="index.html" class="active">Produits</a>
+            <a href="commandes.html">Commandes</a>
+            <a href="demandes.html">Demandes</a>
+            <a href="statistiques.html">Statistiques</a>
+            <a href="../index.html" target="_blank">Voir la boutique</a>
+            <a href="#" onclick="AdminAuth.logout(); return false;" class="logout">Déconnexion</a>
+        </nav>
+    </aside>
+
+    <main class="admin-main">
+        <h1 class="admin-title">Tableau de bord</h1>
+
+        <div class="stats-grid" id="stats-grid"></div>
+
+        <p style="margin:-1.5rem 0 2.5rem; text-align:right;">
+            <a href="statistiques.html" style="display:inline-flex; align-items:center; gap:0.4rem; font-size:0.72rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--gold); font-weight:500;">
+                Voir les statistiques détaillées
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+        </p>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+            <h2 style="font-family:var(--font-display); font-size:1.3rem; font-weight:400;">Produits</h2>
+            <a href="produit-form.html" class="btn btn-gold">+ Ajouter un produit</a>
+        </div>
+
+        <div id="products-container">
+            <p style="color:var(--mist); padding:2rem 0;">Chargement…</p>
+        </div>
+    </main>
+</div>
+
+<script src="../assets/js/config.js"></script>
+<script src="assets/admin.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    await AdminAuth.requireAuth();
+    loadStats();
+    loadProducts();
+});
+
+async function loadStats() {
+    try {
+        const { data: s } = await AdminAPI.stats();
+        document.getElementById('stats-grid').innerHTML = `
+            <div class="stat-card">
+                <p class="stat-label">Produits actifs</p>
+                <p class="stat-value">${s.products_active}</p>
+            </div>
+            <div class="stat-card">
+                <p class="stat-label">Commandes totales</p>
+                <p class="stat-value">${s.orders_total}</p>
+            </div>
+            <div class="stat-card">
+                <p class="stat-label">Commandes en cours</p>
+                <p class="stat-value">${s.orders_pending}</p>
+            </div>
+            <div class="stat-card">
+                <p class="stat-label">Chiffre d'affaires</p>
+                <p class="stat-value" style="font-size:1.4rem;">${Number(s.revenue_total).toLocaleString('fr-FR')} FCFA</p>
+            </div>`;
+    } catch (e) {
+        console.error('Erreur stats :', e);
+    }
+}
+
+let allProducts   = [];
+let currentFilter = 'all';
+
+// Icônes SVG inline (style Feather)
+const ICONS = {
+    eye:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>',
+    pencil: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>',
+    trash:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>',
+};
+
+function statusBadge(isActive) {
+    return isActive
+        ? '<span class="badge" style="background:var(--success);">Actif</span>'
+        : '<span class="badge" style="background:var(--mist);">Inactif</span>';
+}
+
+async function loadProducts() {
+    const container = document.getElementById('products-container');
+    try {
+        const { data: products } = await AdminAPI.products();
+        allProducts = products;
+
+        if (!products.length) {
+            container.innerHTML = '<p style="color:var(--mist); padding:2rem 0;">Aucun produit. Ajoutez votre premier modèle !</p>';
+            return;
+        }
+
+        renderProducts();
+    } catch (e) {
+        container.innerHTML = `<p class="alert alert-error">Erreur de chargement : ${esc(e.message)}</p>`;
+    }
+}
+
+function setFilter(filter) {
+    currentFilter = filter;
+    renderProducts();
+}
+
+function renderProducts() {
+    const container = document.getElementById('products-container');
+
+    const filtered = allProducts.filter(p => {
+        if (currentFilter === 'active')   return Number(p.is_active);
+        if (currentFilter === 'inactive') return !Number(p.is_active);
+        return true;
+    });
+
+    const pills = `
+        <div class="filter-pills" role="group" aria-label="Filtrer les produits">
+            <button class="filter-pill ${currentFilter === 'all' ? 'active' : ''}" onclick="setFilter('all')">Tous</button>
+            <button class="filter-pill ${currentFilter === 'active' ? 'active' : ''}" onclick="setFilter('active')">Actifs</button>
+            <button class="filter-pill ${currentFilter === 'inactive' ? 'active' : ''}" onclick="setFilter('inactive')">Inactifs</button>
+        </div>`;
+
+    if (!filtered.length) {
+        container.innerHTML = pills + '<p style="color:var(--mist); padding:2rem 0;">Aucun produit ne correspond à ce filtre.</p>';
+        return;
+    }
+
+    container.innerHTML = pills + `
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Image</th>
+                    <th>Nom</th>
+                    <th>Catégorie</th>
+                    <th>Prix</th>
+                    <th>Statut</th>
+                    <th>En ligne</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${filtered.map(p => `
+                <tr id="product-row-${p.id}" style="transition:opacity 0.3s; ${!Number(p.is_active) ? 'opacity:0.45;' : ''}">
+                    <td>
+                        ${p.cover_image_url
+                            ? `<img src="${p.cover_image_url}" style="width:44px; height:56px; object-fit:cover;">`
+                            : '<div style="width:44px; height:56px; background:var(--blush);"></div>'}
+                    </td>
+                    <td>
+                        <strong style="font-weight:400;">${esc(p.name)}</strong>
+                        ${Number(p.is_featured) ? '<span class="badge" style="background:var(--gold); margin-left:0.5rem;">Phare</span>' : ''}
+                        ${Number(p.en_promotion) ? '<span class="badge" style="background:#C0392B; margin-left:0.3rem;">Promo</span>' : ''}
+                    </td>
+                    <td style="color:var(--mist);">${esc(p.category_name)}</td>
+                    <td>
+                        ${Number(p.en_promotion) && p.prix_promotion
+                            ? `<span style="color:#C0392B; font-weight:500;">${Number(p.prix_promotion).toLocaleString('fr-FR')}</span>
+                               <span style="text-decoration:line-through; color:var(--mist); font-size:0.75rem;">${Number(p.price).toLocaleString('fr-FR')}</span>`
+                            : Number(p.price).toLocaleString('fr-FR')} FCFA
+                    </td>
+                    <td id="product-status-${p.id}">${statusBadge(Number(p.is_active))}</td>
+                    <td>
+                        <label class="switch" title="${Number(p.is_active) ? 'Désactiver la visibilité boutique' : 'Activer la visibilité boutique'}">
+                            <input type="checkbox" ${Number(p.is_active) ? 'checked' : ''} onchange="toggleProduct(${p.id}, this)">
+                            <span class="slider"></span>
+                        </label>
+                    </td>
+                    <td style="white-space:nowrap;">
+                        <a href="../produit.html?slug=${encodeURIComponent(p.slug)}" target="_blank" rel="noopener" class="icon-btn" title="Voir la fiche publique">${ICONS.eye}</a>
+                        <a href="produit-form.html?id=${p.id}" class="icon-btn" title="Modifier">${ICONS.pencil}</a>
+                        <button onclick="deleteProduct(${p.id}, '${esc(p.name).replace(/'/g, "\\'")}')" class="icon-btn icon-btn-danger" title="Supprimer définitivement">${ICONS.trash}</button>
+                    </td>
+                </tr>`).join('')}
+            </tbody>
+        </table>`;
+}
+
+// Toggle immédiat de visibilité boutique (sans confirm)
+async function toggleProduct(id, checkbox) {
+    const isActive = checkbox.checked ? 1 : 0;
+    checkbox.disabled = true;
+    try {
+        await AdminAPI.toggleProduct(id, isActive);
+
+        const product = allProducts.find(p => Number(p.id) === id);
+        if (product) product.is_active = isActive;
+
+        const row = document.getElementById(`product-row-${id}`);
+        if (row) row.style.opacity = isActive ? '' : '0.45';
+        const statusCell = document.getElementById(`product-status-${id}`);
+        if (statusCell) statusCell.innerHTML = statusBadge(isActive);
+        checkbox.closest('.switch').title = isActive
+            ? 'Désactiver la visibilité boutique'
+            : 'Activer la visibilité boutique';
+
+        loadStats();
+    } catch (e) {
+        checkbox.checked = !checkbox.checked; // retour à l'état précédent
+        alert('Erreur : ' + e.message);
+    } finally {
+        checkbox.disabled = false;
+    }
+}
+
+// Suppression DÉFINITIVE (produit + images). Pour masquer temporairement,
+// utiliser le switch « En ligne ».
+async function deleteProduct(id, name) {
+    if (!confirm(`Supprimer définitivement « ${name} » ?\n\nCette action est irréversible et supprimera aussi ses images.\nPour retirer temporairement le produit de la boutique, utilisez plutôt le switch « En ligne ».`)) return;
+    try {
+        await AdminAPI.deleteProduct(id);
+        allProducts = allProducts.filter(p => Number(p.id) !== id);
+        renderProducts();
+        loadStats();
+    } catch (e) {
+        alert('Suppression impossible : ' + e.message);
+    }
+}
+
+function esc(str) {
+    const div = document.createElement('div');
+    div.textContent = str ?? '';
+    return div.innerHTML;
+}
+</script>
+
+</body>
+</html>

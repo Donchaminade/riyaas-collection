@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin — Produit — Riyaa's Collection</title>
+    <meta name="robots" content="noindex">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/admin.css">
+</head>
+<body>
+
+<div class="admin-layout">
+    <aside class="admin-sidebar">
+        <div class="logo">
+            <span class="logo-main">Riyaa's</span>
+            <span class="logo-sub">Administration</span>
+        </div>
+        <nav class="admin-nav">
+            <a href="index.html" class="active">Produits</a>
+            <a href="commandes.html">Commandes</a>
+            <a href="demandes.html">Demandes</a>
+            <a href="statistiques.html">Statistiques</a>
+            <a href="../index.html" target="_blank">Voir la boutique</a>
+            <a href="#" onclick="AdminAuth.logout(); return false;" class="logout">Déconnexion</a>
+        </nav>
+    </aside>
+
+    <main class="admin-main">
+        <h1 class="admin-title" id="page-title">Ajouter un produit</h1>
+
+        <div id="form-message"></div>
+
+        <form id="product-form" style="max-width:760px;">
+            <input type="hidden" id="product-id" value="">
+
+            <div class="form-card">
+                <h2>Informations générales</h2>
+
+                <div class="form-group">
+                    <label>Nom du produit *</label>
+                    <input type="text" id="name" required placeholder="Ex: Jupe portefeuille en soie">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Catégorie *</label>
+                        <select id="category_id" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Matière</label>
+                        <input type="text" id="material" value="Soie naturelle 100%">
+                    </div>
+                </div>
+
+                <div class="form-group" id="new-category-group" style="display:none;">
+                    <label>Nom de la nouvelle catégorie *</label>
+                    <input type="text" id="new-category" placeholder="Ex: Robes en soie" maxlength="100">
+                    <p style="font-size:0.72rem; color:var(--mist); margin-top:0.4rem;">
+                        Elle sera créée automatiquement à l'enregistrement.
+                    </p>
+                </div>
+
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="description" rows="4" placeholder="Décrivez le modèle, la coupe, les finitions…"></textarea>
+                </div>
+            </div>
+
+            <div class="form-card">
+                <h2>Prix & promotion</h2>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Prix (FCFA) *</label>
+                        <input type="number" id="price" required min="1" step="1" placeholder="Ex: 25000">
+                    </div>
+                    <div class="form-group">
+                        <label>Prix promotionnel (FCFA)</label>
+                        <input type="number" id="prix_promotion" min="0" step="1" placeholder="Laisser vide si pas de promo">
+                    </div>
+                </div>
+
+                <label style="display:flex; align-items:center; gap:0.6rem; font-size:0.85rem; cursor:pointer;">
+                    <input type="checkbox" id="en_promotion" style="width:auto;">
+                    Produit en promotion
+                </label>
+            </div>
+
+            <div class="form-card">
+                <h2>Stock & mise en avant</h2>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Disponibilité</label>
+                        <select id="stock_status">
+                            <option value="made_to_order">Sur commande</option>
+                            <option value="available">Disponible en stock</option>
+                            <option value="out_of_stock">Rupture de stock</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Quantité en stock (facultatif)</label>
+                        <input type="number" id="stock_quantity" min="0" step="1" placeholder="Laisser vide si sur commande">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Seuil d'alerte stock</label>
+                        <input type="number" id="seuil_alerte_stock" min="0" step="1" value="3">
+                    </div>
+                    <div class="form-group">
+                        <label>Délai de livraison (jours)</label>
+                        <input type="number" id="delivery_days" min="1" step="1" value="5">
+                    </div>
+                </div>
+
+                <label style="display:flex; align-items:center; gap:0.6rem; font-size:0.85rem; cursor:pointer; margin-bottom:0.6rem;">
+                    <input type="checkbox" id="is_featured" style="width:auto;">
+                    Mettre en avant sur la page d'accueil (pièce phare)
+                </label>
+
+                <label id="active-toggle" style="display:none; align-items:center; gap:0.6rem; font-size:0.85rem; cursor:pointer;">
+                    <input type="checkbox" id="is_active" checked style="width:auto;">
+                    Produit actif (visible sur la boutique)
+                </label>
+            </div>
+
+            <div class="form-card">
+                <h2>Tailles</h2>
+                <style>
+                    .size-check { cursor: pointer; }
+                    .size-check input { display: none; }
+                    .size-check span {
+                        display: block;
+                        padding: 0.55rem 1.1rem;
+                        border: 1px solid var(--blush);
+                        background: var(--white);
+                        font-size: 0.78rem;
+                        letter-spacing: 0.08em;
+                        color: var(--obsidian);
+                        transition: all 0.2s;
+                        -webkit-user-select: none;
+                        user-select: none;
+                    }
+                    .size-check span:hover { border-color: var(--gold); }
+                    .size-check input:checked + span {
+                        border-color: var(--obsidian);
+                        background: var(--obsidian);
+                        color: var(--ivory);
+                    }
+                </style>
+                <div class="form-group">
+                    <label>Tailles disponibles (cochez les tailles proposées)</label>
+                    <div id="size-checks" style="display:flex; flex-wrap:wrap; gap:0.5rem;">
+                        <label class="size-check"><input type="checkbox" value="XS"><span>XS</span></label>
+                        <label class="size-check"><input type="checkbox" value="S"><span>S</span></label>
+                        <label class="size-check"><input type="checkbox" value="M"><span>M</span></label>
+                        <label class="size-check"><input type="checkbox" value="L"><span>L</span></label>
+                        <label class="size-check"><input type="checkbox" value="XL"><span>XL</span></label>
+                        <label class="size-check"><input type="checkbox" value="XXL"><span>XXL</span></label>
+                        <label class="size-check"><input type="checkbox" value="XXXL"><span>XXXL</span></label>
+                        <label class="size-check"><input type="checkbox" value="Taille unique"><span>Taille unique</span></label>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label>Autres tailles (séparées par des virgules)</label>
+                    <input type="text" id="sizes-custom" placeholder="Ex: 38, 40, 42">
+                </div>
+            </div>
+
+            <div class="form-card">
+                <h2>Images</h2>
+                <style>
+                    #pending-previews { display: none; margin-top: 0.2rem; }
+                    #pending-count { font-size: 0.72rem; color: var(--gold); margin-bottom: 0.6rem; }
+                    #pending-list { display: flex; flex-wrap: wrap; gap: 0.8rem; }
+                    .pending-thumb { position: relative; width: 90px; }
+                    .pending-thumb img {
+                        display: block;
+                        width: 90px; height: 112px;
+                        object-fit: cover;
+                        border: 2px dashed var(--blush);
+                    }
+                    .pending-name {
+                        display: block;
+                        margin-top: 0.3rem;
+                        font-size: 0.6rem;
+                        color: var(--mist);
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                    }
+                    .pending-remove {
+                        position: absolute;
+                        top: 4px; right: 4px;
+                        width: 20px; height: 20px;
+                        display: flex; align-items: center; justify-content: center;
+                        padding: 0;
+                        border: none;
+                        border-radius: 50%;
+                        background: var(--obsidian);
+                        color: #fff;
+                        font-size: 0.85rem;
+                        line-height: 1;
+                        cursor: pointer;
+                        transition: background 0.2s;
+                    }
+                    .pending-remove:hover { background: var(--error); }
+                </style>
+
+                <div id="existing-images" style="display:flex; gap:0.8rem; flex-wrap:wrap; margin-bottom:1rem;"></div>
+
+                <div class="form-group">
+                    <label>Ajouter des images (JPG, PNG ou WebP)</label>
+                    <input type="file" id="images" multiple accept="image/jpeg,image/png,image/webp">
+                </div>
+                <div id="pending-previews">
+                    <p id="pending-count"></p>
+                    <div id="pending-list"></div>
+                </div>
+                <p style="font-size:0.72rem; color:var(--mist); margin-top:0.8rem;">
+                    La première image uploadée devient la couverture si aucune n'existe.
+                    Vous pouvez re-cliquer sur le champ pour ajouter d'autres images à la sélection.
+                </p>
+            </div>
+
+            <div style="display:flex; gap:1rem;">
+                <button type="submit" class="btn btn-gold" style="padding:0.9rem 2.5rem;" id="save-btn">Enregistrer</button>
+                <a href="index.html" class="btn btn-primary" style="padding:0.9rem 2rem;">Annuler</a>
+            </div>
+        </form>
+    </main>
+</div>
+
+<script src="../assets/js/config.js"></script>
+<script src="assets/admin.js"></script>
+<script>
+let editingId = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
+    await AdminAuth.requireAuth();
+
+    // Charger les catégories (endpoint public, all=1 inclut les catégories sans produit actif) + option de création
+    const res = await fetch(`${CONFIG.API_BASE}/products.php?action=categories&all=1`);
+    const { data: categories } = await res.json();
+    const categorySelect = document.getElementById('category_id');
+    categorySelect.innerHTML =
+        categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('') +
+        '<option value="__new__">+ Nouvelle catégorie…</option>';
+
+    // Afficher/masquer le champ "nouvelle catégorie"
+    categorySelect.addEventListener('change', () => {
+        const isNew = categorySelect.value === '__new__';
+        document.getElementById('new-category-group').style.display = isNew ? 'block' : 'none';
+        if (!isNew) document.getElementById('new-category').value = '';
+        if (isNew) document.getElementById('new-category').focus();
+    });
+
+    // Mode édition ?
+    editingId = new URLSearchParams(location.search).get('id');
+    if (editingId) {
+        document.getElementById('page-title').textContent = 'Modifier le produit';
+        document.getElementById('active-toggle').style.display = 'flex';
+        document.title = 'Admin — Modifier le produit';
+        await loadProduct(editingId);
+    }
+
+    document.getElementById('product-form').addEventListener('submit', saveProduct);
+    document.getElementById('images').addEventListener('change', onImagesSelected);
+});
+
+// ---- Aperçu des images en attente d'upload ----
+// Le tableau pendingFiles est la source de vérité (l'input est vidé après chaque
+// sélection pour que les sélections successives s'accumulent au lieu de se remplacer).
+let pendingFiles = []; // [{ file: File, url: string }]
+
+function onImagesSelected(e) {
+    const input = e.target;
+    for (const file of input.files) {
+        if (!file.type.startsWith('image/')) continue;
+        pendingFiles.push({ file, url: URL.createObjectURL(file) });
+    }
+    input.value = '';
+    renderPendingPreviews();
+}
+
+function removePendingFile(index) {
+    const [removed] = pendingFiles.splice(index, 1);
+    if (removed) URL.revokeObjectURL(removed.url);
+    renderPendingPreviews();
+}
+
+function resetPendingFiles() {
+    for (const item of pendingFiles) URL.revokeObjectURL(item.url);
+    pendingFiles = [];
+    renderPendingPreviews();
+}
+
+function renderPendingPreviews() {
+    const block = document.getElementById('pending-previews');
+    if (pendingFiles.length === 0) {
+        block.style.display = 'none';
+        document.getElementById('pending-list').innerHTML = '';
+        return;
+    }
+    block.style.display = 'block';
+    document.getElementById('pending-count').textContent =
+        pendingFiles.length === 1
+            ? '1 image prête à être uploadée'
+            : `${pendingFiles.length} images prêtes à être uploadées`;
+    document.getElementById('pending-list').innerHTML = pendingFiles.map((item, i) => `
+        <div class="pending-thumb">
+            <img src="${item.url}" alt="">
+            <button type="button" class="pending-remove" onclick="removePendingFile(${i})"
+                    title="Retirer cette image de la sélection" aria-label="Retirer ${escAttr(item.file.name)}">&times;</button>
+            <span class="pending-name" title="${escAttr(item.file.name)}">${escAttr(item.file.name)}</span>
+        </div>`).join('');
+}
+
+async function loadProduct(id) {
+    try {
+        const { data: p } = await AdminAPI.product(id);
+
+        document.getElementById('product-id').value       = p.id;
+        document.getElementById('name').value              = p.name;
+        document.getElementById('category_id').value       = p.category_id;
+        document.getElementById('material').value          = p.material || '';
+        document.getElementById('description').value       = p.description || '';
+        document.getElementById('price').value             = Math.round(p.price);
+        document.getElementById('prix_promotion').value    = p.prix_promotion ? Math.round(p.prix_promotion) : '';
+        document.getElementById('en_promotion').checked    = Boolean(Number(p.en_promotion));
+        document.getElementById('stock_status').value      = p.stock_status;
+        document.getElementById('stock_quantity').value    = p.stock_quantity ?? '';
+        document.getElementById('seuil_alerte_stock').value = p.seuil_alerte_stock ?? 3;
+        document.getElementById('delivery_days').value     = p.delivery_days ?? 5;
+        document.getElementById('is_featured').checked     = Boolean(Number(p.is_featured));
+        document.getElementById('is_active').checked       = Boolean(Number(p.is_active));
+        setSizes((p.variants || []).map(v => v.size).filter(Boolean));
+
+        renderExistingImages(p.images || []);
+    } catch (e) {
+        showMessage('Erreur de chargement : ' + e.message, true);
+    }
+}
+
+function renderExistingImages(images) {
+    document.getElementById('existing-images').innerHTML = images.map(img => `
+        <div style="position:relative; width:90px;">
+            <img src="${img.url}" style="width:90px; height:112px; object-fit:cover; border:2px solid ${Number(img.is_cover) ? 'var(--gold)' : 'var(--blush)'};">
+            ${Number(img.is_cover) ? '<span class="badge" style="background:var(--gold); position:absolute; top:4px; left:4px; font-size:0.55rem;">Couverture</span>' : ''}
+            <div style="display:flex; gap:0.3rem; margin-top:0.3rem;">
+                ${!Number(img.is_cover) ? `<button type="button" onclick="makeCover(${img.id})" class="btn btn-primary btn-sm" style="flex:1; font-size:0.55rem; padding:0.3rem;">Couv.</button>` : ''}
+                <button type="button" onclick="removeImage(${img.id})" class="btn btn-danger btn-sm" style="flex:1; font-size:0.55rem; padding:0.3rem;">Suppr.</button>
+            </div>
+            <input type="text" id="img-color-${img.id}" value="${escAttr(img.color || '')}"
+                   placeholder="Couleur (ex: Rouge)" maxlength="80"
+                   onchange="saveImageColor(${img.id}, this.value)"
+                   title="Couleur de l'image — enregistrée automatiquement en quittant le champ"
+                   style="width:100%; margin-top:0.3rem; font-size:0.62rem; padding:0.3rem;">
+        </div>`).join('');
+}
+
+// Échappe une valeur pour un attribut HTML (guillemets, chevrons…)
+function escAttr(str) {
+    return String(str ?? '')
+        .replace(/&/g, '&amp;').replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// Sauvegarde la couleur d'une image au blur (déclenché par onchange)
+async function saveImageColor(imageId, color) {
+    const input = document.getElementById(`img-color-${imageId}`);
+    try {
+        await AdminAPI.setImageColor(imageId, color.trim());
+        input.style.borderColor = 'var(--gold)';
+        setTimeout(() => { input.style.borderColor = ''; }, 1200);
+    } catch (e) {
+        alert('Erreur : ' + e.message);
+    }
+}
+
+async function makeCover(imageId) {
+    try {
+        await AdminAPI.setCover(imageId, parseInt(editingId));
+        await loadProduct(editingId);
+    } catch (e) { alert('Erreur : ' + e.message); }
+}
+
+async function removeImage(imageId) {
+    if (!confirm('Supprimer cette image ?')) return;
+    try {
+        await AdminAPI.deleteImage(imageId);
+        await loadProduct(editingId);
+    } catch (e) { alert('Erreur : ' + e.message); }
+}
+
+async function saveProduct(e) {
+    e.preventDefault();
+    const btn = document.getElementById('save-btn');
+    btn.disabled    = true;
+    btn.textContent = 'Enregistrement…';
+
+    const categoryValue = document.getElementById('category_id').value;
+    const newCategory   = document.getElementById('new-category').value.trim();
+    if (categoryValue === '__new__' && !newCategory) {
+        showMessage('Veuillez saisir le nom de la nouvelle catégorie.', true);
+        btn.disabled    = false;
+        btn.textContent = 'Enregistrer';
+        return;
+    }
+
+    const fd = new FormData();
+    if (editingId) fd.append('id', editingId);
+    fd.append('name',               document.getElementById('name').value.trim());
+    if (categoryValue === '__new__') {
+        fd.append('new_category', newCategory);
+    } else {
+        fd.append('category_id', categoryValue);
+    }
+    fd.append('material',           document.getElementById('material').value.trim());
+    fd.append('description',        document.getElementById('description').value.trim());
+    fd.append('price',              document.getElementById('price').value);
+    fd.append('prix_promotion',     document.getElementById('prix_promotion').value);
+    fd.append('en_promotion',       document.getElementById('en_promotion').checked ? '1' : '');
+    fd.append('stock_status',       document.getElementById('stock_status').value);
+    fd.append('stock_quantity',     document.getElementById('stock_quantity').value);
+    fd.append('seuil_alerte_stock', document.getElementById('seuil_alerte_stock').value);
+    fd.append('delivery_days',      document.getElementById('delivery_days').value);
+    fd.append('is_featured',        document.getElementById('is_featured').checked ? '1' : '');
+    fd.append('sizes',              collectSizes().join(', '));
+    if (editingId) {
+        fd.append('is_active', document.getElementById('is_active').checked ? '1' : '');
+    }
+
+    for (const item of pendingFiles) fd.append('images[]', item.file);
+
+    try {
+        if (editingId) {
+            await AdminAPI.updateProduct(fd);
+        } else {
+            await AdminAPI.createProduct(fd);
+        }
+        resetPendingFiles();
+        location.href = 'index.html';
+    } catch (err) {
+        showMessage('Erreur : ' + err.message, true);
+        btn.disabled    = false;
+        btn.textContent = 'Enregistrer';
+    }
+}
+
+// Tailles = cases cochées + tailles custom du champ texte (sans doublons)
+function collectSizes() {
+    const checked = [...document.querySelectorAll('#size-checks input:checked')].map(cb => cb.value);
+    const custom  = document.getElementById('sizes-custom').value
+        .split(',').map(s => s.trim()).filter(Boolean);
+    return [...new Set([...checked, ...custom])];
+}
+
+// Coche les cases correspondant aux tailles ; le reste va dans "Autres tailles"
+function setSizes(sizes) {
+    const boxes = [...document.querySelectorAll('#size-checks input')];
+    const extras = [];
+    for (const size of sizes) {
+        const box = boxes.find(cb => cb.value.toLowerCase() === String(size).trim().toLowerCase());
+        if (box) box.checked = true;
+        else if (String(size).trim()) extras.push(String(size).trim());
+    }
+    document.getElementById('sizes-custom').value = extras.join(', ');
+}
+
+function showMessage(text, isError) {
+    document.getElementById('form-message').innerHTML =
+        `<div class="alert ${isError ? 'alert-error' : 'alert-success'}">${text}</div>`;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+
+</body>
+</html>

@@ -1,9 +1,5 @@
 <?php
-define('DB_HOST',    'localhost');
-define('DB_NAME',    'riyaas_collection');
-define('DB_USER',    'root');
-define('DB_PASS',    '');
-define('DB_CHARSET', 'utf8mb4');
+require_once __DIR__ . '/config.php';
 
 function getDB(): PDO {
     static $pdo = null;
@@ -20,7 +16,8 @@ function getDB(): PDO {
             );
         } catch (PDOException $e) {
             http_response_code(500);
-            die(json_encode(['error' => 'Erreur de connexion base de données']));
+            header('Content-Type: application/json; charset=utf-8');
+            die(json_encode(['success' => false, 'error' => 'Erreur de connexion base de données']));
         }
     }
     return $pdo;

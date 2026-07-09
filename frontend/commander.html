@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finaliser ma commande — Riyaa's Collection</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        .checkout-layout {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 3rem;
+            align-items: start;
+        }
+        @media (max-width: 900px) {
+            .checkout-layout { grid-template-columns: 1fr; }
+            .checkout-summary { position: static !important; }
+        }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        @media (max-width: 580px) { .form-row { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<main id="main-content">
+    <section style="padding:4rem 0 6rem; background:var(--ivory);">
+        <div class="container">
+            <h1 style="font-family:var(--font-display); font-size:2.5rem; font-weight:300; margin-bottom:3rem; padding-bottom:1rem; border-bottom:1px solid var(--blush);">
+                Finaliser ma commande
+            </h1>
+            <div id="checkout-container">
+                <p style="text-align:center; color:var(--mist); padding:3rem 0;">Vérification du panier…</p>
+            </div>
+        </div>
+    </section>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/cart.js"></script>
+<script src="assets/js/layout.js"></script>
+<script>
+let validatedCart = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const container = document.getElementById('checkout-container');
+    const items     = Cart.getItems();
+
+    if (!items.length) {
+        container.innerHTML = `
+        <div style="text-align:center; padding:4rem 0;">
+            <p style="font-family:var(--font-display); font-size:1.5rem; color:var(--mist); margin-bottom:2rem;">Votre panier est vide</p>
+            <a href="catalogue.html" class="btn btn-primary">Voir le catalogue</a>
+        </div>`;
+        return;
+    }
+
+    try {
+        // Revalidation des prix côté serveur avant affichage
+        validatedCart = await API.cartValidate(items.map(i => ({
+            product_id: i.product_id,
+            variant_id: i.variant_id || 0,
+            quantity:   i.quantity,
+            color:      i.color || '',
+        })));
+    } catch (e) {
+        container.innerHTML = `<p style="text-align:center; color:var(--error); padding:3rem 0;">Impossible de valider le panier. Veuillez réessayer.</p>`;
+        console.error(e);
+        return;
+    }
+
+    const { cart, total, deposit, balance } = validatedCart;
+
+    container.innerHTML = `
+    <div class="checkout-layout">
+
+        <!-- FORMULAIRE -->
+        <div>
+            <form id="checkout-form" onsubmit="return false;">
+                <div style="background:var(--white); padding:2rem; border:1px solid var(--blush); margin-bottom:2rem;">
+                    <h2 style="font-family:var(--font-display); font-size:1.3rem; font-weight:400; margin-bottom:0.5rem; padding-bottom:1rem; border-bottom:1px solid var(--blush);">
+                        Vos informations
+                    </h2>
+                    <p style="font-size:0.78rem; color:var(--gold); display:flex; align-items:center; gap:0.4rem; margin-bottom:1.5rem;">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                        <span>Commande rapide — 4 infos suffisent</span>
+                    </p>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Prénom *</label>
+                            <input type="text" name="first_name" required placeholder="Ex: Ama">
+                        </div>
+                        <div class="form-group">
+                            <label>Nom *</label>
+                            <input type="text" name="last_name" required placeholder="Ex: Koffi">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Numéro TMoney * (pour le paiement et la livraison)</label>
+                        <input type="tel" name="phone" required placeholder="Ex: 90 00 00 00" style="font-size:1rem;">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ville de livraison *</label>
+                        <input type="text" name="city" required value="Lomé" placeholder="Ex: Lomé">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Quartier / Adresse précise (facultatif)</label>
+                        <input type="text" name="address" placeholder="Ex: Adidogomé, rue des manguiers">
+                    </div>
+                </div>
+
+                <div style="background:var(--obsidian); padding:1.5rem; color:var(--ivory); margin-bottom:2rem;">
+                    <p style="font-size:0.68rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold); margin-bottom:1rem;">
+                        Comment ça marche
+                    </p>
+                    <p style="font-size:0.88rem; line-height:1.7; color:#9B9490;">
+                        En cliquant sur <strong style="color:var(--ivory);">"Valider ma commande"</strong>,
+                        votre commande est enregistrée et un message récapitulatif WhatsApp s'ouvre.
+                        Vous enverrez ensuite votre acompte de <strong style="color:var(--gold);">${CONFIG.DEPOSIT_PERCENT}% via TMoney</strong>
+                        pour lancer la confection. Le reste sera payé à la livraison.
+                    </p>
+                </div>
+            </form>
+
+            <button id="submit-order-btn"
+                    style="display:flex; align-items:center; justify-content:center; gap:0.5rem; width:100%; padding:1rem;
+                           background:#25D366; color:white; border:none; cursor:pointer;
+                           font-size:0.78rem; letter-spacing:0.1em; text-transform:uppercase; font-weight:500;">
+                Valider et envoyer sur WhatsApp
+            </button>
+            <p style="font-size:0.7rem; color:var(--mist); text-align:center; margin-top:0.5rem;">
+                Remplissez le formulaire ci-dessus puis confirmez via WhatsApp
+            </p>
+            <p id="checkout-error" style="display:none; color:var(--error); font-size:0.82rem; text-align:center; margin-top:0.75rem;"></p>
+        </div>
+
+        <!-- RÉSUMÉ -->
+        <div class="checkout-summary" style="background:var(--white); padding:2rem; border:1px solid var(--blush); position:sticky; top:100px;">
+            <h3 style="font-family:var(--font-display); font-size:1.3rem; font-weight:400; margin-bottom:1.5rem; padding-bottom:1rem; border-bottom:1px solid var(--blush);">
+                Votre commande
+            </h3>
+
+            ${cart.map(item => `
+            <div style="display:flex; gap:1rem; margin-bottom:1rem; padding-bottom:1rem; border-bottom:1px solid var(--blush);">
+                ${item.image
+                    ? `<img src="${item.image}" style="width:50px; height:65px; object-fit:cover;">`
+                    : '<div style="width:50px; height:65px; background:var(--blush);"></div>'}
+                <div style="flex:1;">
+                    <p style="font-size:0.85rem; font-weight:400;">${escapeHtml(item.product_name)}</p>
+                    ${item.size ? `<p style="font-size:0.72rem; color:var(--mist);">Taille : ${escapeHtml(item.size)}</p>` : ''}
+                    ${item.color ? `<p style="font-size:0.72rem; color:var(--mist);">Couleur : ${escapeHtml(item.color)}</p>` : ''}
+                    <p style="font-size:0.72rem; color:var(--mist);">Qté : ${item.quantity}</p>
+                </div>
+                <p style="font-size:0.85rem; font-weight:500;">${formatPrice(item.subtotal)} ${CONFIG.CURRENCY}</p>
+            </div>`).join('')}
+
+            <div style="margin-top:1rem;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:0.6rem; font-size:0.85rem;">
+                    <span>Total commande</span>
+                    <span>${formatPrice(total)} ${CONFIG.CURRENCY}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; padding:0.8rem; background:var(--ivory); border-left:3px solid var(--gold); margin:1rem 0; font-size:0.88rem;">
+                    <span style="color:var(--gold); font-weight:500;">Acompte TMoney (${CONFIG.DEPOSIT_PERCENT}%)</span>
+                    <span style="color:var(--gold); font-weight:500;">${formatPrice(deposit)} ${CONFIG.CURRENCY}</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:0.82rem; color:var(--mist);">
+                    <span>Reste à la livraison</span>
+                    <span>${formatPrice(balance)} ${CONFIG.CURRENCY}</span>
+                </div>
+            </div>
+
+            <div style="font-size:0.7rem; color:var(--mist); margin-top:1.5rem; display:flex; flex-direction:column; align-items:center; gap:0.3rem;">
+                <span style="display:flex; align-items:center; gap:0.35rem;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span>Livraison garantie sous <strong>${CONFIG.DELIVERY_DAYS} jours</strong></span>
+                </span>
+                <span style="display:flex; align-items:center; gap:0.35rem;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    <span>Remise en main propre — Lomé</span>
+                </span>
+            </div>
+        </div>
+    </div>`;
+
+    document.getElementById('submit-order-btn').addEventListener('click', submitOrder);
+});
+
+async function submitOrder() {
+    const form    = document.getElementById('checkout-form');
+    const btn     = document.getElementById('submit-order-btn');
+    const errorEl = document.getElementById('checkout-error');
+
+    const firstName = form.first_name.value.trim();
+    const lastName  = form.last_name.value.trim();
+    const phone     = form.phone.value.trim();
+    const city      = form.city.value.trim();
+    const address   = form.address.value.trim();
+
+    if (!firstName || !lastName || !phone || !city) {
+        errorEl.textContent   = 'Merci de remplir votre prénom, nom, téléphone et ville avant de valider.';
+        errorEl.style.display = 'block';
+        return;
+    }
+
+    errorEl.style.display = 'none';
+    btn.disabled    = true;
+    btn.textContent = 'Enregistrement de la commande…';
+
+    try {
+        // 1. Enregistrer la commande en base (prix recalculés côté serveur)
+        const order = await API.createOrder({
+            first_name: firstName,
+            last_name:  lastName,
+            phone, city, address,
+            cart: Cart.getItems().map(i => ({
+                product_id: i.product_id,
+                variant_id: i.variant_id || 0,
+                quantity:   i.quantity,
+                color:      i.color || '',
+            })),
+        });
+
+        // 2. Ouvrir le récapitulatif WhatsApp
+        const lines = order.items.map(i =>
+            `- ${i.product_name}${i.size ? ' (Taille ' + i.size + ')' : ''}${i.color ? ' (Couleur ' + i.color + ')' : ''} (Quantité : ${i.quantity})`);
+
+        const message =
+            "Bonjour Riyaa's Collection, voici ma commande officielle :\n" +
+            `N° de commande : ${order.order_number}\n` +
+            lines.join('\n') + "\n" +
+            `Total : ${formatPrice(order.total)} ${CONFIG.CURRENCY}\n\n` +
+            `Cliente : ${firstName} ${lastName}\n` +
+            `Téléphone : ${phone}\n` +
+            `Ville : ${city}\n\n` +
+            `Je valide les conditions : je m'apprête à envoyer mon acompte de ${CONFIG.DEPOSIT_PERCENT}% ` +
+            `(${formatPrice(order.deposit)} ${CONFIG.CURRENCY}) par TMoney (Mix by Yass) au numéro ${CONFIG.TMONEY_NUMBER} ` +
+            `pour lancer la confection de mes vêtements en soie. Le reste sera payé à la livraison sous ${CONFIG.DELIVERY_DAYS} jours.`;
+
+        window.open(`https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
+
+        // 3. Vider le panier et afficher la confirmation
+        sessionStorage.setItem('riyaas_last_order', JSON.stringify(order));
+        Cart.clear();
+        location.href = 'confirmation.html';
+
+    } catch (e) {
+        errorEl.textContent   = e.message || 'Erreur lors de la commande. Veuillez réessayer.';
+        errorEl.style.display = 'block';
+        btn.disabled    = false;
+        btn.textContent = 'Valider et envoyer sur WhatsApp';
+        console.error(e);
+    }
+}
+</script>
+
+</body>
+</html>

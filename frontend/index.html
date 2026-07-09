@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Riyaa's Collection — Vêtements en soie sur commande</title>
+    <meta name="description" content="Riyaa's Collection — Vêtements en soie haut de gamme confectionnés à la commande au Togo.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+
+    <!-- ── Splash screen : CSS inline pour être effectif dès le premier paint ── -->
+    <style>
+    #splash {
+        position: fixed;
+        inset: 0;
+        z-index: 1000; /* au-dessus du header (z-index 100) */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2.4rem;
+        background: radial-gradient(ellipse at 50% 42%, #26201A 0%, #1A1714 58%, #110E0B 100%);
+    }
+
+    /* Scroll bloqué tant que le splash est présent */
+    body.splash-active { overflow: hidden; }
+
+    .splash-logo {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        opacity: 0;
+        animation: splashLogoIn 1s cubic-bezier(0.22, 1, 0.36, 1) 0.15s forwards;
+    }
+
+    /* "Riyaa's" : fondu + léger scale, puis reflet doré qui balaye le texte */
+    .splash-name {
+        font-family: 'Cormorant Garamond', Georgia, serif;
+        font-weight: 600;
+        font-size: clamp(3.2rem, 9vw, 4.6rem);
+        line-height: 1;
+        color: #F8F5F0;
+        background: linear-gradient(105deg, #F8F5F0 38%, #D4B483 50%, #F8F5F0 62%);
+        background-size: 260% 100%;
+        background-position: 130% 0;
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: splashSheen 1.5s ease-in-out 0.6s forwards;
+    }
+
+    /* "COLLECTION" : fondu + letter-spacing qui se resserre */
+    .splash-sub {
+        font-family: Jost, 'Helvetica Neue', Arial, sans-serif;
+        font-weight: 400;
+        font-size: 0.72rem;
+        letter-spacing: 0.3em;
+        text-indent: 0.3em; /* compense l'espace final du letter-spacing */
+        text-transform: uppercase;
+        color: #B8975A;
+        opacity: 0;
+        animation: splashSubIn 1.1s cubic-bezier(0.22, 1, 0.36, 1) 0.45s forwards;
+    }
+
+    /* Fine ligne dorée sous le logo : se remplit depuis le centre = indicateur de chargement */
+    .splash-rule {
+        position: relative;
+        width: 168px;
+        height: 1px;
+        background: rgba(184, 151, 90, 0.22);
+        overflow: hidden;
+    }
+    .splash-rule::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, rgba(184, 151, 90, 0.35), #D4B483, rgba(184, 151, 90, 0.35));
+        transform: scaleX(0);
+        transform-origin: center;
+        animation: splashRuleFill 1.15s cubic-bezier(0.22, 1, 0.36, 1) 0.5s forwards;
+    }
+
+    /* Sortie : fondu + léger scale (le JS retire ensuite l'élément du DOM) */
+    #splash.splash-leaving {
+        opacity: 0;
+        transform: scale(1.05);
+        pointer-events: none;
+        transition: opacity 0.7s ease 0.05s, transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    @keyframes splashLogoIn {
+        from { opacity: 0; transform: translateY(16px) scale(0.97); }
+        to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes splashSheen {
+        to { background-position: -30% 0; }
+    }
+    @keyframes splashSubIn {
+        from { opacity: 0; letter-spacing: 0.55em; text-indent: 0.55em; }
+        to   { opacity: 1; letter-spacing: 0.3em; text-indent: 0.3em; }
+    }
+    @keyframes splashRuleFill {
+        to { transform: scaleX(1); }
+    }
+
+    /* Les animations d'entrée du hero (délais --d compris) restent gelées
+       tant que le splash est présent ; elles démarrent de zéro quand le JS
+       retire la classe splash-active du body. */
+    body.splash-active .hero-reveal,
+    body.splash-active .hero-line-inner,
+    body.splash-active .hero-eyebrow-rule,
+    body.splash-active .hero-watermark,
+    body.splash-active .hero-waves,
+    body.splash-active .hero-frame,
+    body.splash-active .hero-badge {
+        animation-play-state: paused !important;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        #splash, .splash-logo, .splash-name, .splash-sub, .splash-rule::after {
+            animation: none !important;
+        }
+        .splash-logo, .splash-sub { opacity: 1; }
+        .splash-rule::after { transform: scaleX(1); }
+        #splash.splash-leaving { transition: opacity 0.3s ease; transform: none; }
+    }
+    </style>
+    <noscript>
+        <style>
+        #splash { display: none; }
+        body.splash-active { overflow: auto; }
+        body.splash-active .hero-reveal,
+        body.splash-active .hero-line-inner,
+        body.splash-active .hero-eyebrow-rule,
+        body.splash-active .hero-watermark,
+        body.splash-active .hero-waves,
+        body.splash-active .hero-frame,
+        body.splash-active .hero-badge {
+            animation-play-state: running !important;
+        }
+        </style>
+    </noscript>
+</head>
+<body class="splash-active">
+
+<!-- ── Splash screen (retiré du DOM à la fin de son animation) ── -->
+<div id="splash" role="status" aria-label="Chargement de Riyaa's Collection">
+    <div class="splash-logo">
+        <span class="splash-name">Riyaa's</span>
+        <span class="splash-sub">Collection</span>
+    </div>
+    <div class="splash-rule" aria-hidden="true"></div>
+</div>
+<script>
+(function () {
+    var splash  = document.getElementById('splash');
+
+    /* Le splash ne s'affiche qu'une fois par session de navigation :
+       en revenant sur l'accueil via le menu, il est retiré immédiatement. */
+    var alreadyShown = false;
+    try { alreadyShown = sessionStorage.getItem('riyaas_splash_shown') === '1'; } catch (e) {}
+    if (alreadyShown) {
+        document.body.classList.remove('splash-active');
+        document.body.classList.add('splash-done');
+        if (splash.parentNode) splash.parentNode.removeChild(splash);
+        return;
+    }
+    try { sessionStorage.setItem('riyaas_splash_shown', '1'); } catch (e) {}
+
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var MIN_MS  = reduced ? 3000 : 1600;   /* durée minimale d'affichage */
+    var MAX_MS  = 9000;                   /* garde-fou : on ne bloque jamais plus de 5 s */
+    var FADE_MS = reduced ? 3500 : 8000;    /* durée du fondu de sortie */
+    var start   = Date.now();
+    var done    = false;
+
+    function finish() {
+        if (done) return;
+        done = true;
+        splash.classList.add('splash-leaving');
+        /* Libère le scroll et déclenche les animations d'entrée du hero */
+        document.body.classList.remove('splash-active');
+        document.body.classList.add('splash-done');
+        setTimeout(function () {
+            if (splash.parentNode) splash.parentNode.removeChild(splash);
+        }, FADE_MS);
+    }
+
+    function scheduleFinish() {
+        setTimeout(finish, Math.max(0, MIN_MS - (Date.now() - start)));
+    }
+
+    if (document.readyState === 'complete') scheduleFinish();
+    else window.addEventListener('load', scheduleFinish);
+    setTimeout(finish, MAX_MS);
+}());
+</script>
+
+<div id="site-header"></div>
+
+<main id="main-content">
+
+    <!-- ══ HERO ══════════════════════════════════════════════ -->
+    <section class="hero">
+
+        <!-- Fond vivant : voiles de soie flous en dérive lente + grain -->
+        <div class="hero-bg" aria-hidden="true">
+            <span class="hero-veil hero-veil--1"></span>
+            <span class="hero-veil hero-veil--2"></span>
+            <span class="hero-veil hero-veil--3"></span>
+        </div>
+
+        <!-- Mot en filigrane derrière le contenu -->
+        <span class="hero-watermark" aria-hidden="true">Soie</span>
+
+        <!-- Drapés de soie : fines lignes ondulées en dérive lente
+             (paths périodiques sur 1440 unités, calques 200% de large
+             translatés de -50% en boucle → raccord invisible) -->
+        <div class="hero-waves" aria-hidden="true">
+            <div class="hero-wave-layer hero-wave-layer--1">
+                <svg viewBox="0 0 2880 200" preserveAspectRatio="none">
+                    <path d="M0 100 Q120 40 240 100 T480 100 T720 100 T960 100 T1200 100 T1440 100 T1680 100 T1920 100 T2160 100 T2400 100 T2640 100 T2880 100" vector-effect="non-scaling-stroke"/>
+                </svg>
+            </div>
+            <div class="hero-wave-layer hero-wave-layer--2">
+                <svg viewBox="0 0 2880 200" preserveAspectRatio="none">
+                    <path d="M0 100 Q180 45 360 100 T720 100 T1080 100 T1440 100 T1800 100 T2160 100 T2520 100 T2880 100" vector-effect="non-scaling-stroke"/>
+                </svg>
+            </div>
+            <div class="hero-wave-layer hero-wave-layer--3">
+                <svg viewBox="0 0 2880 200" preserveAspectRatio="none">
+                    <path d="M0 100 Q360 55 720 100 T1440 100 T2160 100 T2880 100" vector-effect="non-scaling-stroke"/>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Vague de séparation vers la section suivante (2 calques déphasés) -->
+        <div class="hero-wave-bottom" aria-hidden="true">
+            <div class="hero-wave-bottom-layer hero-wave-bottom--back">
+                <svg viewBox="0 0 2880 110" preserveAspectRatio="none">
+                    <path d="M0 55 Q180 28 360 55 T720 55 T1080 55 T1440 55 T1800 55 T2160 55 T2520 55 T2880 55 V110 H0 Z"/>
+                </svg>
+            </div>
+            <div class="hero-wave-bottom-layer hero-wave-bottom--front">
+                <svg viewBox="0 0 2880 110" preserveAspectRatio="none">
+                    <path d="M0 72 Q180 96 360 72 T720 72 T1080 72 T1440 72 T1800 72 T2160 72 T2520 72 T2880 72 V110 H0 Z"/>
+                </svg>
+            </div>
+        </div>
+
+        <div class="hero-inner">
+            <div class="hero-text">
+                <p class="hero-eyebrow hero-reveal" style="--d: 0.15s;">
+                    <span class="hero-eyebrow-rule" aria-hidden="true"></span>
+                    Confection artisanale · Lomé, Togo
+                </p>
+                <h1 class="hero-title">
+                    <span class="hero-line" style="--d: 0.35s;"><span class="hero-line-inner">La soie,</span></span>
+                    <span class="hero-line" style="--d: 0.50s;"><span class="hero-line-inner"><em>réinventée</em></span></span>
+                    <span class="hero-line" style="--d: 0.65s;"><span class="hero-line-inner">pour vous.</span></span>
+                </h1>
+                <p class="hero-sub hero-reveal" style="--d: 0.90s;">
+                    Chaque modèle est confectionné à la commande.<br>
+                    Livraison garantie sous 5 jours.
+                </p>
+                <div class="hero-cta hero-reveal" style="--d: 1.10s;">
+                    <a href="catalogue.html" class="btn btn-primary btn-hero">
+                        <span class="btn-hero-label">Découvrir le catalogue</span>
+                        <span class="btn-hero-arrow" aria-hidden="true">&rarr;</span>
+                    </a>
+                    <a href="#process" class="btn btn-ghost btn-hero">
+                        <span class="btn-hero-label">Comment ça marche</span>
+                        <span class="btn-hero-arrow" aria-hidden="true">&rarr;</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Visuel : cadre éditorial + flottement + badge rotatif -->
+            <div class="hero-image" id="hero-parallax">
+                <div class="hero-frame">
+                    <div class="hero-canvas">
+                        <div class="hero-image-placeholder" id="hero-image-slot">
+                            <span class="hero-placeholder-mark">R</span>
+                            <span class="hero-placeholder-text">Riyaa's Collection</span>
+                        </div>
+                    </div>
+                </div>
+                <svg class="hero-badge" viewBox="0 0 120 120" aria-hidden="true">
+                    <defs>
+                        <path id="hero-badge-circle" d="M 60,60 m -46,0 a 46,46 0 1,1 92,0 a 46,46 0 1,1 -92,0"/>
+                    </defs>
+                    <circle cx="60" cy="60" r="59" class="hero-badge-disc"/>
+                    <circle cx="60" cy="60" r="30" class="hero-badge-ring"/>
+                    <g class="hero-badge-rotor">
+                        <text class="hero-badge-text">
+                            <textPath href="#hero-badge-circle">100% soie naturelle&#160;&#160;·&#160;&#160;confection artisanale&#160;&#160;·&#160;&#160;</textPath>
+                        </text>
+                    </g>
+                    <text x="60" y="60" class="hero-badge-mono" text-anchor="middle" dominant-baseline="central">R</text>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Indicateur de scroll -->
+        <a class="hero-scroll hero-reveal" style="--d: 1.6s;" href="#process" aria-label="Faire défiler vers la section suivante">
+            <span class="hero-scroll-label">Défiler</span>
+            <span class="hero-scroll-line" aria-hidden="true"></span>
+        </a>
+    </section>
+
+    <!-- ══ CATÉGORIES ════════════════════════════════════════ -->
+    <section class="section-categories" id="categories-section" style="display:none;">
+        <div class="container">
+            <h2 class="section-title">Nos collections</h2>
+            <div class="categories-grid" id="categories-grid">
+                <!-- Rempli via l'API -->
+            </div>
+        </div>
+    </section>
+
+    <!-- ══ PRODUITS PHARES ═══════════════════════════════════ -->
+    <section class="section-featured" id="featured-section" style="display:none;">
+        <div class="container">
+            <h2 class="section-title">Pièces phares</h2>
+            <div class="products-grid" id="featured-grid"></div>
+            <div class="section-cta">
+                <a href="catalogue.html" class="btn btn-outline">Voir tout le catalogue</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══ PROCESSUS DE COMMANDE ═════════════════════════════ -->
+    <section class="section-process" id="process">
+        <div class="container">
+            <h2 class="section-title">Comment commander</h2>
+            <div class="process-steps">
+                <div class="process-step">
+                    <div class="step-number">01</div>
+                    <h3>Choisissez votre modèle</h3>
+                    <p>Parcourez le catalogue, sélectionnez votre taille et couleur.</p>
+                </div>
+                <div class="process-step">
+                    <div class="step-number">02</div>
+                    <h3>Payez l'acompte de 50%</h3>
+                    <p>Un acompte de 50% via TMoney déclenche la confection de votre pièce.</p>
+                </div>
+                <div class="process-step">
+                    <div class="step-number">03</div>
+                    <h3>Confection artisanale</h3>
+                    <p>Votre vêtement est confectionné avec soin dans un délai de 5 jours maximum.</p>
+                </div>
+                <div class="process-step">
+                    <div class="step-number">04</div>
+                    <h3>Livraison & solde</h3>
+                    <p>À la remise en main propre, vous réglez les 50% restants en espèces ou TMoney.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══ CTA DEMANDE SUR MESURE ════════════════════════════ -->
+    <section style="padding:5rem 0; background:var(--white); border-top:1px solid var(--blush);">
+        <div class="container">
+            <div class="surmesure-band" data-reveal style="display:grid; grid-template-columns:auto 1fr auto; gap:2rem; align-items:center; background:var(--ivory); border:1px solid var(--gold); padding:2.5rem 3rem;">
+                <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <div>
+                    <h2 style="font-family:var(--font-display); font-size:clamp(1.4rem,2.5vw,1.9rem); font-weight:300; margin-bottom:0.4rem;">
+                        Vous cherchez une pièce particulière ?
+                    </h2>
+                    <p style="font-size:0.9rem; color:var(--mist);">
+                        Un modèle vu ailleurs, une envie précise ? Décrivez-la, joignez une photo :
+                        nous la trouvons ou la confectionnons pour vous.
+                    </p>
+                </div>
+                <a href="demande.html" class="btn btn-primary" style="white-space:nowrap;">Demander sur mesure</a>
+            </div>
+        </div>
+    </section>
+    <style>
+        @media (max-width: 760px) {
+            .surmesure-band {
+                grid-template-columns: 1fr !important;
+                text-align: center;
+                justify-items: center;
+                padding: 2rem 1.5rem !important;
+            }
+        }
+    </style>
+
+    <!-- ══ BANNIÈRE MATIÈRE ══════════════════════════════════ -->
+    <section class="section-material">
+        <div class="container">
+            <div class="material-inner">
+                <h2>Soie naturelle 100%</h2>
+                <p>Chaque pièce Riyaa's Collection est taillée dans une soie naturelle sélectionnée pour sa fluidité, sa brillance et son toucher exceptionnel.</p>
+                <a href="catalogue.html" class="btn btn-primary">Explorer la collection</a>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<div id="site-footer"></div>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/cart.js"></script>
+<script src="assets/js/layout.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+
+    // Catégories — 100 % depuis l'API (image = couverture d'un produit de la catégorie).
+    // Si l'API échoue ou ne renvoie rien, la section reste masquée : aucun contenu statique.
+    try {
+        const { data: categories } = await API.categories();
+        if (categories.length) {
+            document.getElementById('categories-grid').innerHTML = categories.map(cat => `
+                <a href="catalogue.html?categorie=${encodeURIComponent(cat.slug)}" class="category-card">
+                    <div class="category-image-wrap">
+                        ${cat.image_url
+                            ? `<img src="${cat.image_url}" alt="${escapeHtml(cat.name)}"
+                                   loading="lazy"
+                                   style="width:100%; aspect-ratio:2/3; object-fit:cover; display:block; transition:transform 0.6s ease;">`
+                            : '<div class="category-image-placeholder"></div>'}
+                    </div>
+                    <span class="category-name">${escapeHtml(cat.name)}</span>
+                </a>
+            `).join('');
+            document.getElementById('categories-section').style.display = '';
+        }
+    } catch (e) {
+        console.error('Erreur chargement catégories :', e);
+    }
+
+    // Produits phares
+    try {
+        const { data: featured } = await API.featured();
+        if (featured.length) {
+            document.getElementById('featured-grid').innerHTML = featured.map(productCardHtml).join('');
+            document.getElementById('featured-section').style.display = '';
+        }
+    } catch (e) {
+        console.error('Erreur chargement produits phares :', e);
+    }
+
+    // Image hero (si présente dans assets/images/)
+    const heroSlot = document.getElementById('hero-image-slot');
+    const heroImg  = new Image();
+    heroImg.onload = () => {
+        heroSlot.outerHTML = '<img src="assets/images/hero.jpg" alt="Riyaa\'s Collection" class="hero-photo">';
+    };
+    heroImg.src = 'assets/images/hero.jpg';
+
+    // Parallaxe léger du visuel hero au scroll (désactivé si reduced motion)
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const heroVisual = document.getElementById('hero-parallax');
+    if (heroVisual && !prefersReduced.matches) {
+        let ticking = false;
+        window.addEventListener('scroll', () => {
+            if (ticking) return;
+            ticking = true;
+            requestAnimationFrame(() => {
+                const y = window.scrollY;
+                if (y < window.innerHeight) {
+                    heroVisual.style.transform = `translateY(${y * -0.06}px)`;
+                }
+                ticking = false;
+            });
+        }, { passive: true });
+    }
+});
+</script>
+
+</body>
+</html>

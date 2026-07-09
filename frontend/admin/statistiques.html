@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin — Statistiques — Riyaa's Collection</title>
+    <meta name="robots" content="noindex">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/admin.css">
+    <style>
+        /* Styles propres à la page Statistiques */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .kpi-card {
+            background: var(--white);
+            border: 1px solid var(--blush);
+            padding: 1.4rem 1.5rem;
+            position: relative;
+        }
+
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 2px;
+            background: linear-gradient(90deg, var(--gold), transparent 70%);
+        }
+
+        .kpi-label {
+            font-size: 0.62rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--mist);
+            margin-bottom: 0.5rem;
+        }
+
+        .kpi-value {
+            font-family: var(--font-display);
+            font-size: 1.7rem;
+            font-weight: 600;
+            color: var(--obsidian);
+            line-height: 1.2;
+        }
+
+        .kpi-value .unit { font-size: 0.85rem; font-weight: 400; color: var(--mist); }
+
+        .kpi-trend {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.72rem;
+            font-weight: 500;
+            margin-top: 0.5rem;
+        }
+
+        .kpi-trend.up   { color: var(--success); }
+        .kpi-trend.down { color: var(--error); }
+        .kpi-trend.flat { color: var(--mist); }
+
+        .kpi-sub { font-size: 0.72rem; color: var(--mist); margin-top: 0.5rem; }
+
+        .chart-card {
+            background: var(--white);
+            border: 1px solid var(--blush);
+            padding: 1.6rem 1.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-card h2 {
+            font-family: var(--font-display);
+            font-size: 1.15rem;
+            font-weight: 400;
+            margin-bottom: 0.2rem;
+        }
+
+        .chart-card .chart-sub {
+            font-size: 0.65rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--mist);
+            margin-bottom: 1.2rem;
+        }
+
+        .chart-row {
+            display: grid;
+            grid-template-columns: 3fr 2fr;
+            gap: 1.5rem;
+        }
+
+        .chart-row-half {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .chart-svg { width: 100%; height: auto; display: block; }
+
+        .axis-label {
+            font-family: var(--font-body);
+            font-size: 0.65rem;
+            fill: var(--mist);
+            font-weight: 300;
+        }
+
+        /* Tooltip flottant des graphiques */
+        #chart-tooltip {
+            position: fixed;
+            pointer-events: none;
+            background: var(--obsidian);
+            color: var(--ivory);
+            font-size: 0.72rem;
+            padding: 0.45rem 0.8rem;
+            white-space: nowrap;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.12s;
+            box-shadow: 0 4px 16px rgba(26,23,20,0.25);
+        }
+
+        #chart-tooltip strong { color: var(--gold-light); font-weight: 500; }
+
+        /* Barres horizontales (statuts, catégories) */
+        .hbar-row { display: grid; grid-template-columns: 110px 1fr 52px; align-items: center; gap: 0.8rem; margin-bottom: 0.7rem; }
+        .hbar-label { font-size: 0.72rem; color: var(--mist); text-align: right; line-height: 1.25; }
+        .hbar-track { background: var(--ivory); height: 14px; position: relative; }
+        .hbar-fill { height: 100%; transition: width 0.6s ease; }
+        .hbar-value { font-size: 0.75rem; font-weight: 500; }
+
+        .tables-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .empty-note { color: var(--mist); font-size: 0.8rem; padding: 1.5rem 0; text-align: center; }
+
+        @media (max-width: 900px) {
+            .chart-row, .chart-row-half, .tables-row { grid-template-columns: 1fr; }
+            .hbar-row { grid-template-columns: 90px 1fr 48px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="admin-layout">
+    <aside class="admin-sidebar">
+        <div class="logo">
+            <span class="logo-main">Riyaa's</span>
+            <span class="logo-sub">Administration</span>
+        </div>
+        <nav class="admin-nav">
+            <a href="index.html">Produits</a>
+            <a href="commandes.html">Commandes</a>
+            <a href="demandes.html">Demandes</a>
+            <a href="statistiques.html" class="active">Statistiques</a>
+            <a href="../index.html" target="_blank">Voir la boutique</a>
+            <a href="#" onclick="AdminAuth.logout(); return false;" class="logout">Déconnexion</a>
+        </nav>
+    </aside>
+
+    <main class="admin-main">
+        <h1 class="admin-title">Statistiques</h1>
+
+        <div id="stats-content">
+            <p style="color:var(--mist); padding:2rem 0;">Chargement des statistiques…</p>
+        </div>
+    </main>
+</div>
+
+<div id="chart-tooltip"></div>
+
+<script src="../assets/js/config.js"></script>
+<script src="assets/admin.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    await AdminAuth.requireAuth();
+    loadDashboardStats();
+});
+
+// ── Helpers de formatage ─────────────────────────────────────
+const fmt    = (n) => Number(n).toLocaleString('fr-FR');
+const fmtCfa = (n) => `${fmt(Math.round(n))} FCFA`;
+
+// Montant abrégé pour les axes (1,2 M / 350 k)
+function fmtShort(n) {
+    n = Number(n);
+    if (n >= 1_000_000) return (n / 1_000_000).toLocaleString('fr-FR', { maximumFractionDigits: 1 }) + ' M';
+    if (n >= 1_000)     return Math.round(n / 1_000).toLocaleString('fr-FR') + ' k';
+    return fmt(n);
+}
+
+function esc(str) {
+    const div = document.createElement('div');
+    div.textContent = str ?? '';
+    return div.innerHTML;
+}
+
+// Flèche de tendance SVG (haut = vert, bas = rouge)
+function trendBadge(change) {
+    if (change === null || change === undefined) {
+        return '<span class="kpi-trend flat">— vs mois précédent</span>';
+    }
+    const up   = change >= 0;
+    const cls  = up ? 'up' : 'down';
+    const path = up
+        ? '<line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/>'
+        : '<line x1="7" y1="7" x2="17" y2="17"/><polyline points="17 7 17 17 7 17"/>';
+    return `<span class="kpi-trend ${cls}">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${path}</svg>
+        ${up ? '+' : ''}${Number(change).toLocaleString('fr-FR')} % vs mois précédent
+    </span>`;
+}
+
+// ── Tooltip flottant partagé ─────────────────────────────────
+const tooltip = () => document.getElementById('chart-tooltip');
+
+function showTooltip(evt, html) {
+    const t = tooltip();
+    t.innerHTML = html;
+    t.style.opacity = '1';
+    moveTooltip(evt);
+}
+
+function moveTooltip(evt) {
+    const t = tooltip();
+    const pad = 14;
+    let x = evt.clientX + pad;
+    let y = evt.clientY - 36;
+    if (x + t.offsetWidth > window.innerWidth - 10) x = evt.clientX - t.offsetWidth - pad;
+    t.style.left = x + 'px';
+    t.style.top  = Math.max(8, y) + 'px';
+}
+
+function hideTooltip() {
+    tooltip().style.opacity = '0';
+}
+
+// ── Graphique aire/courbe : CA 30 jours ──────────────────────
+function areaChart(series) {
+    const W = 720, H = 220, padL = 52, padR = 12, padT = 14, padB = 28;
+    const innerW = W - padL - padR, innerH = H - padT - padB;
+    const max = Math.max(...series.map(d => d.revenue), 1);
+    const n = series.length;
+
+    const px = (i) => padL + (n > 1 ? i / (n - 1) : 0.5) * innerW;
+    const py = (v) => padT + innerH - (v / max) * innerH;
+
+    const linePath = series.map((d, i) => `${i === 0 ? 'M' : 'L'}${px(i).toFixed(1)},${py(d.revenue).toFixed(1)}`).join(' ');
+    const areaPath = `${linePath} L${px(n - 1).toFixed(1)},${(padT + innerH).toFixed(1)} L${px(0).toFixed(1)},${(padT + innerH).toFixed(1)} Z`;
+
+    // Graduations Y (0, 50%, 100%) et étiquettes X (1 sur 6)
+    const yTicks = [0, 0.5, 1].map(r => {
+        const y = py(max * r).toFixed(1);
+        return `
+            <line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="var(--blush)" stroke-width="1" stroke-dasharray="${r === 0 ? 'none' : '3 4'}"/>
+            <text x="${padL - 8}" y="${+y + 3}" text-anchor="end" class="axis-label">${fmtShort(max * r)}</text>`;
+    }).join('');
+
+    const xLabels = series.map((d, i) => {
+        if (i % 6 !== 0 && i !== n - 1) return '';
+        const dt = new Date(d.date + 'T00:00:00');
+        const label = dt.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+        return `<text x="${px(i).toFixed(1)}" y="${H - 8}" text-anchor="middle" class="axis-label">${label}</text>`;
+    }).join('');
+
+    // Zones de survol invisibles + points
+    const hovers = series.map((d, i) => {
+        const dt = new Date(d.date + 'T00:00:00');
+        const label = dt.toLocaleDateString('fr-FR', { weekday: 'short', day: '2-digit', month: 'long' });
+        const tip = `${label}<br><strong>${fmtCfa(d.revenue)}</strong> — ${d.orders} commande${d.orders > 1 ? 's' : ''}`;
+        const cellW = innerW / n;
+        return `
+            <circle cx="${px(i).toFixed(1)}" cy="${py(d.revenue).toFixed(1)}" r="3" fill="var(--gold)" opacity="0" class="dot-${i}"/>
+            <rect x="${(px(i) - cellW / 2).toFixed(1)}" y="${padT}" width="${cellW.toFixed(1)}" height="${innerH}"
+                  fill="transparent" style="cursor:crosshair;"
+                  onmousemove='moveTooltip(event)'
+                  onmouseenter='showTooltip(event, ${JSON.stringify(tip)}); this.parentNode.querySelector(".dot-${i}").setAttribute("opacity","1")'
+                  onmouseleave='hideTooltip(); this.parentNode.querySelector(".dot-${i}").setAttribute("opacity","0")'/>`;
+    }).join('');
+
+    return `
+    <svg class="chart-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="Chiffre d'affaires des 30 derniers jours">
+        <defs>
+            <linearGradient id="gold-area" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%"  stop-color="#B8975A" stop-opacity="0.35"/>
+                <stop offset="100%" stop-color="#B8975A" stop-opacity="0.02"/>
+            </linearGradient>
+        </defs>
+        ${yTicks}
+        <path d="${areaPath}" fill="url(#gold-area)"/>
+        <path d="${linePath}" fill="none" stroke="var(--gold)" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+        ${xLabels}
+        ${hovers}
+    </svg>`;
+}
+
+// ── Graphique barres : CA mensuel 12 mois ────────────────────
+function barChart(series) {
+    const W = 720, H = 220, padL = 52, padR = 12, padT = 14, padB = 28;
+    const innerW = W - padL - padR, innerH = H - padT - padB;
+    const max = Math.max(...series.map(d => d.revenue), 1);
+    const n = series.length;
+    const slot = innerW / n;
+    const barW = Math.min(34, slot * 0.55);
+
+    const yTicks = [0, 0.5, 1].map(r => {
+        const y = (padT + innerH - r * innerH).toFixed(1);
+        return `
+            <line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="var(--blush)" stroke-width="1" stroke-dasharray="${r === 0 ? 'none' : '3 4'}"/>
+            <text x="${padL - 8}" y="${+y + 3}" text-anchor="end" class="axis-label">${fmtShort(max * r)}</text>`;
+    }).join('');
+
+    const bars = series.map((d, i) => {
+        const h = Math.max(d.revenue > 0 ? 2 : 0, (d.revenue / max) * innerH);
+        const x = padL + i * slot + (slot - barW) / 2;
+        const y = padT + innerH - h;
+        const [yr, mo] = d.month.split('-');
+        const dt = new Date(+yr, +mo - 1, 1);
+        const short = dt.toLocaleDateString('fr-FR', { month: 'short' });
+        const full  = dt.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+        const tip = `${full}<br><strong>${fmtCfa(d.revenue)}</strong> — ${d.orders} commande${d.orders > 1 ? 's' : ''}`;
+        return `
+            <rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${h.toFixed(1)}"
+                  fill="url(#gold-bar)" style="cursor:pointer;"
+                  onmousemove='moveTooltip(event)'
+                  onmouseenter='showTooltip(event, ${JSON.stringify(tip)})'
+                  onmouseleave='hideTooltip()'/>
+            <text x="${(padL + i * slot + slot / 2).toFixed(1)}" y="${H - 8}" text-anchor="middle" class="axis-label">${short}</text>`;
+    }).join('');
+
+    return `
+    <svg class="chart-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="Chiffre d'affaires mensuel sur 12 mois">
+        <defs>
+            <linearGradient id="gold-bar" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%"  stop-color="#D4B483"/>
+                <stop offset="100%" stop-color="#B8975A"/>
+            </linearGradient>
+        </defs>
+        ${yTicks}
+        ${bars}
+    </svg>`;
+}
+
+// ── Barres horizontales (statuts / catégories) ───────────────
+// items : [{ label, value, color, tip? }]
+function hBars(items, unit = '') {
+    const max = Math.max(...items.map(i => i.value), 1);
+    return items.map(i => `
+        <div class="hbar-row">
+            <span class="hbar-label">${esc(i.label)}</span>
+            <div class="hbar-track">
+                <div class="hbar-fill" style="width:${(i.value / max * 100).toFixed(1)}%; background:${i.color};"
+                     ${i.tip ? `onmousemove='moveTooltip(event)' onmouseenter='showTooltip(event, ${JSON.stringify(i.tip)})' onmouseleave='hideTooltip()'` : ''}></div>
+            </div>
+            <span class="hbar-value">${fmt(i.value)}${unit}</span>
+        </div>`).join('');
+}
+
+// ── Chargement + rendu ───────────────────────────────────────
+async function loadDashboardStats() {
+    const container = document.getElementById('stats-content');
+    try {
+        const { data } = await AdminAPI.dashboardStats();
+        const k = data.kpi;
+
+        // KPI cards
+        const kpiCards = `
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <p class="kpi-label">CA total</p>
+                <p class="kpi-value">${fmt(k.revenue_total)} <span class="unit">FCFA</span></p>
+                <p class="kpi-sub">Commandes annulées exclues</p>
+            </div>
+            <div class="kpi-card">
+                <p class="kpi-label">CA du mois</p>
+                <p class="kpi-value">${fmt(k.revenue_month)} <span class="unit">FCFA</span></p>
+                ${trendBadge(k.revenue_month_change)}
+            </div>
+            <div class="kpi-card">
+                <p class="kpi-label">Commandes du mois</p>
+                <p class="kpi-value">${fmt(k.orders_month)}</p>
+                ${trendBadge(k.orders_month_change)}
+            </div>
+            <div class="kpi-card">
+                <p class="kpi-label">Panier moyen</p>
+                <p class="kpi-value">${fmt(k.average_order)} <span class="unit">FCFA</span></p>
+                <p class="kpi-sub">Sur l'ensemble des commandes valides</p>
+            </div>
+            <div class="kpi-card">
+                <p class="kpi-label">Acomptes encaissés</p>
+                <p class="kpi-value">${fmt(k.deposits_collected)} <span class="unit">FCFA</span></p>
+                <p class="kpi-sub">Soldes en attente : ${fmtCfa(k.balance_pending)}</p>
+            </div>
+            <div class="kpi-card">
+                <p class="kpi-label">Produits actifs</p>
+                <p class="kpi-value">${fmt(k.products_active)}</p>
+                <p class="kpi-sub" ${k.products_low_stock > 0 ? 'style="color:var(--error);"' : ''}>
+                    ${k.products_low_stock > 0 ? `${k.products_low_stock} en rupture ou stock bas` : 'Aucune alerte de stock'}
+                </p>
+            </div>
+        </div>`;
+
+        // Statuts de commandes (barres horizontales colorées)
+        const statusItems = Object.entries(ORDER_STATUSES).map(([key, s]) => ({
+            label: s.label,
+            value: data.orders_by_status[key] ?? 0,
+            color: s.color,
+        }));
+
+        // Demandes sur mesure par statut
+        const requestItems = Object.entries(REQUEST_STATUSES).map(([key, s]) => ({
+            label: s.label,
+            value: data.requests_by_status[key] ?? 0,
+            color: s.color,
+        }));
+
+        // Répartition par catégorie
+        const catColors = ['#B8975A', '#8E44AD', '#2E86C1', '#16A085', '#C0736B'];
+        const categoryItems = data.sales_by_category.map((c, i) => ({
+            label: c.category,
+            value: c.revenue,
+            color: catColors[i % catColors.length],
+            tip: `${esc(c.category)}<br><strong>${fmtCfa(c.revenue)}</strong> — ${c.quantity} pièce${c.quantity > 1 ? 's' : ''}`,
+        }));
+
+        const charts = `
+        <div class="chart-card">
+            <h2>Chiffre d'affaires — 30 derniers jours</h2>
+            <p class="chart-sub">Commandes non annulées</p>
+            ${areaChart(data.daily_revenue)}
+        </div>
+
+        <div class="chart-card">
+            <h2>Chiffre d'affaires mensuel — 12 derniers mois</h2>
+            <p class="chart-sub">Commandes non annulées</p>
+            ${barChart(data.monthly_revenue)}
+        </div>
+
+        <div class="chart-row-half">
+            <div class="chart-card">
+                <h2>Commandes par statut</h2>
+                <p class="chart-sub">Toutes périodes</p>
+                ${hBars(statusItems)}
+            </div>
+            <div class="chart-card">
+                <h2>Ventes par catégorie</h2>
+                <p class="chart-sub">CA par catégorie (FCFA)</p>
+                ${categoryItems.length
+                    ? hBars(categoryItems.map(c => ({ ...c, value: Math.round(c.value) })))
+                    : '<p class="empty-note">Aucune vente enregistrée</p>'}
+            </div>
+        </div>
+
+        <div class="chart-row-half">
+            <div class="chart-card">
+                <h2>Demandes sur mesure par statut</h2>
+                <p class="chart-sub">Toutes périodes</p>
+                ${hBars(requestItems)}
+            </div>
+            <div class="chart-card">
+                <h2>Top villes de livraison</h2>
+                <p class="chart-sub">Nombre de commandes</p>
+                ${data.top_cities.length ? `
+                <table class="admin-table">
+                    <thead><tr><th>Ville</th><th>Commandes</th><th>CA</th></tr></thead>
+                    <tbody>
+                        ${data.top_cities.map(c => `
+                        <tr>
+                            <td>${esc(c.city)}</td>
+                            <td>${fmt(c.orders)}</td>
+                            <td>${fmtCfa(c.revenue)}</td>
+                        </tr>`).join('')}
+                    </tbody>
+                </table>` : '<p class="empty-note">Aucune commande avec ville renseignée</p>'}
+            </div>
+        </div>`;
+
+        const tables = `
+        <div class="chart-card">
+            <h2>Top 5 produits les plus vendus</h2>
+            <p class="chart-sub">Commandes non annulées</p>
+            ${data.top_products.length ? `
+            <table class="admin-table">
+                <thead><tr><th>Produit</th><th>Quantité vendue</th><th>Chiffre d'affaires</th></tr></thead>
+                <tbody>
+                    ${data.top_products.map(p => `
+                    <tr>
+                        <td>${esc(p.product_name)}</td>
+                        <td>${fmt(p.quantity)}</td>
+                        <td>${fmtCfa(p.revenue)}</td>
+                    </tr>`).join('')}
+                </tbody>
+            </table>` : '<p class="empty-note">Aucune vente enregistrée</p>'}
+        </div>
+
+        <div class="tables-row">
+            <div class="chart-card" style="margin-bottom:0;">
+                <h2>Dernières commandes</h2>
+                <p class="chart-sub">8 plus récentes</p>
+                ${data.recent_orders.length ? `
+                <table class="admin-table">
+                    <thead><tr><th>N°</th><th>Cliente</th><th>Montant</th><th>Statut</th><th>Date</th></tr></thead>
+                    <tbody>
+                        ${data.recent_orders.map(o => {
+                            const st = ORDER_STATUSES[o.order_status] || { label: o.order_status, color: 'var(--mist)' };
+                            return `
+                            <tr>
+                                <td style="white-space:nowrap;">${esc(o.order_number)}</td>
+                                <td>${esc(o.customer_name)}</td>
+                                <td style="white-space:nowrap;">${fmtCfa(o.total_amount)}</td>
+                                <td><span class="badge" style="background:${st.color};">${st.label}</span></td>
+                                <td style="white-space:nowrap; color:var(--mist);">${new Date(o.created_at).toLocaleDateString('fr-FR')}</td>
+                            </tr>`;
+                        }).join('')}
+                    </tbody>
+                </table>` : '<p class="empty-note">Aucune commande</p>'}
+            </div>
+
+            <div class="chart-card" style="margin-bottom:0;">
+                <h2>Dernières demandes sur mesure</h2>
+                <p class="chart-sub">5 plus récentes</p>
+                ${data.recent_requests.length ? `
+                <table class="admin-table">
+                    <thead><tr><th>N°</th><th>Cliente</th><th>Budget</th><th>Statut</th><th>Date</th></tr></thead>
+                    <tbody>
+                        ${data.recent_requests.map(r => {
+                            const st = REQUEST_STATUSES[r.status] || { label: r.status, color: 'var(--mist)' };
+                            return `
+                            <tr>
+                                <td style="white-space:nowrap;">${esc(r.request_number)}</td>
+                                <td>${esc(r.customer_name)}</td>
+                                <td style="white-space:nowrap;">${r.budget ? fmtCfa(r.budget) : '—'}</td>
+                                <td><span class="badge" style="background:${st.color};">${st.label}</span></td>
+                                <td style="white-space:nowrap; color:var(--mist);">${new Date(r.created_at).toLocaleDateString('fr-FR')}</td>
+                            </tr>`;
+                        }).join('')}
+                    </tbody>
+                </table>` : '<p class="empty-note">Aucune demande</p>'}
+            </div>
+        </div>`;
+
+        container.innerHTML = kpiCards + charts + tables;
+    } catch (e) {
+        container.innerHTML = `<p class="alert alert-error">Erreur de chargement : ${esc(e.message)}</p>`;
+    }
+}
+</script>
+
+</body>
+</html>

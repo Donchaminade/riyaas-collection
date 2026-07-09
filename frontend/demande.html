@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demande sur mesure — Riyaa's Collection</title>
+    <meta name="description" content="Vous cherchez une pièce en soie particulière ? Décrivez-la, joignez une photo : nous la trouvons ou la confectionnons pour vous à Lomé.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        .request-layout {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 3rem;
+            align-items: start;
+        }
+        @media (max-width: 860px) { .request-layout { grid-template-columns: 1fr; } }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        @media (max-width: 580px) { .form-row { grid-template-columns: 1fr; } }
+
+        .upload-zone {
+            border: 1px dashed var(--gold);
+            background: var(--ivory);
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.25s ease;
+        }
+        .upload-zone:hover { background: var(--blush); }
+        .upload-zone svg { color: var(--gold); margin: 0 auto 0.5rem; display: block; }
+        .upload-preview {
+            display: none;
+            position: relative;
+            margin-top: 1rem;
+        }
+        .upload-preview img {
+            max-height: 260px;
+            width: auto;
+            margin: 0 auto;
+            border: 1px solid var(--blush);
+        }
+        .request-step {
+            display: flex;
+            gap: 1rem;
+            padding: 1.1rem 0;
+            border-bottom: 1px solid var(--blush);
+        }
+        .request-step:last-child { border-bottom: none; }
+        .request-step-num {
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            color: var(--gold);
+            flex-shrink: 0;
+            line-height: 1.3;
+        }
+        .request-step p { font-size: 0.88rem; color: var(--mist); }
+        .request-step strong { color: var(--obsidian); font-weight: 500; }
+    </style>
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<main id="main-content">
+
+    <!-- ══ BANDEAU TITRE ═════════════════════════════════════ -->
+    <section style="padding:3rem 0 2rem; background:var(--white); border-bottom:1px solid var(--blush);">
+        <div class="container">
+            <p style="font-size:0.7rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold); margin-bottom:0.5rem;">
+                Service sur mesure
+            </p>
+            <h1 style="font-family:var(--font-display); font-size:clamp(2rem,4vw,3rem); font-weight:300;">
+                Demandez la pièce de vos rêves
+            </h1>
+            <p style="max-width:640px; margin-top:1rem; color:var(--mist); font-size:0.92rem;">
+                Un modèle vu ailleurs, une envie précise, une couleur introuvable ?
+                Décrivez la pièce, joignez une photo de référence : nous la trouvons
+                ou la confectionnons pour vous, en soie naturelle.
+            </p>
+        </div>
+    </section>
+
+    <section style="padding:4rem 0 6rem; background:var(--ivory);">
+        <div class="container">
+            <div id="request-container" class="request-layout">
+
+                <!-- FORMULAIRE -->
+                <div style="background:var(--white); border:1px solid var(--blush); padding:2rem;">
+                    <h2 style="font-family:var(--font-display); font-size:1.4rem; font-weight:400; margin-bottom:1.5rem; padding-bottom:1rem; border-bottom:1px solid var(--blush);">
+                        Votre demande
+                    </h2>
+
+                    <form id="request-form" onsubmit="return false;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Nom complet *</label>
+                                <input type="text" name="name" required placeholder="Ex: Ama Koffi">
+                            </div>
+                            <div class="form-group">
+                                <label>Téléphone / WhatsApp *</label>
+                                <input type="tel" name="phone" required placeholder="Ex: 90 00 00 00">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Décrivez la pièce recherchée *</label>
+                            <textarea name="description" rows="6" required
+                                      placeholder="Ex: Une chemise en soie vert émeraude à manches bouffantes, col lavallière, vue sur Instagram. Taille M, pour un mariage fin juillet…"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Budget approximatif en FCFA (facultatif)</label>
+                            <input type="number" name="budget" min="0" step="500" placeholder="Ex: 35000">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Photo de référence (facultatif — JPG, PNG ou WebP, 5 Mo max)</label>
+                            <div class="upload-zone" id="upload-zone">
+                                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                                <p style="font-size:0.82rem; color:var(--mist);">
+                                    Cliquez pour choisir une image<br>
+                                    <span style="font-size:0.72rem;">(capture d'écran, photo de magazine, croquis…)</span>
+                                </p>
+                            </div>
+                            <input type="file" id="image-input" accept="image/jpeg,image/png,image/webp" style="display:none;">
+                            <div class="upload-preview" id="upload-preview">
+                                <img id="preview-img" alt="Aperçu de votre photo de référence">
+                                <button type="button" id="remove-image"
+                                        style="display:block; margin:0.6rem auto 0; background:none; border:1px solid var(--error); color:var(--error); padding:0.3rem 1rem; font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; font-family:var(--font-body);">
+                                    Retirer l'image
+                                </button>
+                            </div>
+                        </div>
+
+                        <p id="request-error" style="display:none; color:var(--error); font-size:0.82rem; margin-bottom:0.8rem;"></p>
+
+                        <button type="button" id="request-submit" class="btn btn-primary" style="width:100%;">
+                            Envoyer ma demande
+                        </button>
+                    </form>
+                </div>
+
+                <!-- COMMENT ÇA MARCHE -->
+                <div style="background:var(--white); border:1px solid var(--blush); padding:2rem; position:sticky; top:100px;">
+                    <h2 style="font-family:var(--font-display); font-size:1.4rem; font-weight:400; margin-bottom:0.5rem;">
+                        Comment ça marche
+                    </h2>
+                    <div class="request-step">
+                        <span class="request-step-num">01</span>
+                        <p><strong>Vous décrivez la pièce</strong> — plus il y a de détails (matière, couleur, coupe, occasion), mieux c'est. Une photo aide énormément.</p>
+                    </div>
+                    <div class="request-step">
+                        <span class="request-step-num">02</span>
+                        <p><strong>Nous étudions votre demande</strong> et revenons vers vous sur WhatsApp avec une proposition : modèle, soie disponible, prix et délai.</p>
+                    </div>
+                    <div class="request-step">
+                        <span class="request-step-num">03</span>
+                        <p><strong>Vous validez, nous confectionnons.</strong> Comme pour toute commande : acompte de 50% via TMoney, livraison sous 5 jours à Lomé.</p>
+                    </div>
+                    <p style="font-size:0.8rem; color:var(--mist); margin-top:1.2rem; padding-top:1.2rem; border-top:1px solid var(--blush);">
+                        Ce service est sans engagement : demander un devis ne vous oblige à rien.
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<div id="site-footer"></div>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/cart.js"></script>
+<script src="assets/js/layout.js"></script>
+<script>
+let selectedFile = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+    const zone    = document.getElementById('upload-zone');
+    const input   = document.getElementById('image-input');
+    const preview = document.getElementById('upload-preview');
+    const img     = document.getElementById('preview-img');
+
+    zone.addEventListener('click', () => input.click());
+
+    input.addEventListener('change', () => {
+        const file = input.files[0];
+        if (!file) return;
+
+        if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+            showError('Format non accepté : choisissez une image JPG, PNG ou WebP.');
+            input.value = '';
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            showError('Image trop lourde : 5 Mo maximum.');
+            input.value = '';
+            return;
+        }
+
+        showError(null);
+        selectedFile = file;
+        img.src = URL.createObjectURL(file);
+        preview.style.display = 'block';
+        zone.style.display    = 'none';
+    });
+
+    document.getElementById('remove-image').addEventListener('click', () => {
+        selectedFile = null;
+        input.value  = '';
+        img.src      = '';
+        preview.style.display = 'none';
+        zone.style.display    = 'block';
+    });
+
+    document.getElementById('request-submit').addEventListener('click', submitRequest);
+});
+
+function showError(message) {
+    const el = document.getElementById('request-error');
+    if (!message) { el.style.display = 'none'; return; }
+    el.textContent   = message;
+    el.style.display = 'block';
+}
+
+async function submitRequest() {
+    const form = document.getElementById('request-form');
+    const btn  = document.getElementById('request-submit');
+
+    // form.elements : form.name renverrait l'attribut name du <form>, pas le champ
+    const name        = form.elements['name'].value.trim();
+    const phone       = form.elements['phone'].value.trim();
+    const description = form.elements['description'].value.trim();
+    const budget      = form.elements['budget'].value.trim();
+
+    if (!name || !phone || !description) {
+        showError('Merci de remplir votre nom, téléphone et la description de la pièce.');
+        return;
+    }
+    showError(null);
+
+    btn.disabled    = true;
+    btn.textContent = 'Envoi de votre demande…';
+
+    const formData = new FormData();
+    formData.append('name',        name);
+    formData.append('phone',       phone);
+    formData.append('description', description);
+    if (budget)       formData.append('budget', budget);
+    if (selectedFile) formData.append('image', selectedFile);
+
+    try {
+        const res  = await fetch(`${CONFIG.API_BASE}/requests.php?action=create`, { method: 'POST', body: formData });
+        const json = await res.json();
+        if (!res.ok || json.success === false) {
+            throw new Error(json.error || `Erreur API (${res.status})`);
+        }
+        showConfirmation(json.request_number, { name, phone, description, budget });
+    } catch (e) {
+        showError(e.message || 'Erreur lors de l\'envoi. Veuillez réessayer.');
+        btn.disabled    = false;
+        btn.textContent = 'Envoyer ma demande';
+        console.error(e);
+    }
+}
+
+function showConfirmation(requestNumber, { name, phone, description, budget }) {
+    const whatsappText =
+        "Bonjour Riyaa's Collection, je viens d'envoyer une demande sur mesure :\n" +
+        `Référence : ${requestNumber}\n` +
+        `Nom : ${name}\n` +
+        `Téléphone : ${phone}\n\n` +
+        `Pièce recherchée : ${description}` +
+        (budget ? `\nBudget approximatif : ${Number(budget).toLocaleString('fr-FR')} FCFA` : '') +
+        (selectedFile ? "\n\n(Une photo de référence est jointe à ma demande sur le site — je peux aussi vous l'envoyer ici.)" : '');
+
+    document.getElementById('request-container').outerHTML = `
+    <div style="max-width:640px; margin:0 auto; background:var(--white); border:1px solid var(--blush); padding:3rem 2.5rem; text-align:center;">
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 1.2rem; display:block;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <h2 style="font-family:var(--font-display); font-size:1.8rem; font-weight:300; margin-bottom:0.8rem;">
+            Demande bien reçue
+        </h2>
+        <p style="color:var(--mist); font-size:0.92rem; margin-bottom:1.5rem;">
+            Votre demande sur mesure est enregistrée. Nous l'étudions et revenons
+            vers vous sur WhatsApp avec une proposition et un devis.
+        </p>
+        <div style="background:var(--ivory); border-left:3px solid var(--gold); padding:1rem; margin-bottom:2rem;">
+            <p style="font-size:0.7rem; letter-spacing:0.18em; text-transform:uppercase; color:var(--mist);">Votre référence</p>
+            <p style="font-family:var(--font-display); font-size:1.5rem; color:var(--gold);">${requestNumber}</p>
+        </div>
+        <a href="https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encodeURIComponent(whatsappText)}" target="_blank" rel="noopener"
+           style="display:flex; align-items:center; justify-content:center; gap:0.5rem; width:100%; padding:1rem; margin-bottom:1rem;
+                  background:#25D366; color:white; font-size:0.78rem; letter-spacing:0.1em; text-transform:uppercase; font-weight:500;">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+            Envoyer aussi ma demande sur WhatsApp
+        </a>
+        <a href="catalogue.html" class="btn btn-ghost" style="width:100%;">Retour au catalogue</a>
+    </div>`;
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+
+</body>
+</html>

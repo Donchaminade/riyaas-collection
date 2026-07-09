@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon panier — Riyaa's Collection</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        .cart-layout {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 3rem;
+            align-items: start;
+        }
+        @media (max-width: 900px) {
+            .cart-layout { grid-template-columns: 1fr; }
+            .cart-summary { position: static !important; max-width: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<main id="main-content">
+    <section class="cart-page">
+        <div class="container">
+            <div style="display:flex; justify-content:space-between; align-items:baseline; gap:1rem; flex-wrap:wrap;">
+                <h1 style="flex:1; min-width:200px;">Mon panier</h1>
+                <button id="clear-cart-btn" onclick="clearCart()" style="display:none;
+                        background:none; border:1px solid var(--blush); color:var(--mist);
+                        font-family:var(--font-body); font-size:0.7rem; letter-spacing:0.12em;
+                        text-transform:uppercase; padding:0.5rem 1.2rem; cursor:pointer; transition:all 0.2s;"
+                        onmouseover="this.style.borderColor='#C0392B'; this.style.color='#C0392B';"
+                        onmouseout="this.style.borderColor='var(--blush)'; this.style.color='var(--mist)';">
+                    × Vider le panier
+                </button>
+            </div>
+            <div id="cart-container">
+                <p style="text-align:center; color:var(--mist); padding:3rem 0;">Chargement…</p>
+            </div>
+        </div>
+    </section>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/cart.js"></script>
+<script src="assets/js/layout.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', renderCart);
+
+function renderCart() {
+    const container = document.getElementById('cart-container');
+    const items     = Cart.getItems();
+
+    document.getElementById('clear-cart-btn').style.display = items.length ? 'inline-block' : 'none';
+
+    if (!items.length) {
+        container.innerHTML = `
+        <div style="text-align:center; padding:5rem 0;">
+            <p style="font-family:var(--font-display); font-size:1.5rem; font-weight:300; color:var(--mist); margin-bottom:1rem;">
+                Votre panier est vide
+            </p>
+            <p style="font-size:0.85rem; color:var(--mist); margin-bottom:2rem;">
+                Découvrez nos modèles en soie et ajoutez vos pièces préférées.
+            </p>
+            <a href="catalogue.html" class="btn btn-primary">Voir le catalogue</a>
+        </div>`;
+        return;
+    }
+
+    const total   = Cart.total();
+    const deposit = Math.round(total * CONFIG.DEPOSIT_PERCENT / 100);
+    const balance = total - deposit;
+
+    container.innerHTML = `
+    <div class="cart-layout">
+
+        <!-- ARTICLES -->
+        <div>
+            <table class="cart-table">
+                <thead>
+                    <tr>
+                        <th>Article</th>
+                        <th>Prix unitaire</th>
+                        <th>Quantité</th>
+                        <th>Sous-total</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${items.map((item, index) => `
+                    <tr>
+                        <td>
+                            <div style="display:flex; gap:1rem; align-items:center;">
+                                ${item.image
+                                    ? `<img src="${item.image}" style="width:60px; height:75px; object-fit:cover; background:var(--blush);" alt="${escapeHtml(item.product_name)}">`
+                                    : '<div style="width:60px; height:75px; background:var(--blush);"></div>'}
+                                <div>
+                                    <p style="font-weight:400; font-size:0.9rem; margin-bottom:0.2rem;">${escapeHtml(item.product_name)}</p>
+                                    ${item.size  ? `<p style="font-size:0.75rem; color:var(--mist);">Taille : ${escapeHtml(item.size)}</p>` : ''}
+                                    ${item.color ? `<p style="font-size:0.75rem; color:var(--mist);">Couleur : ${escapeHtml(item.color)}</p>` : ''}
+                                </div>
+                            </div>
+                        </td>
+                        <td style="font-size:0.9rem;">${formatPrice(item.unit_price)} ${CONFIG.CURRENCY}</td>
+                        <td>
+                            <div style="display:flex; align-items:center; border:1px solid var(--blush); width:fit-content;">
+                                <button onclick="updateQty(${index}, -1)" style="width:28px; height:28px; border:none; background:none; cursor:pointer; font-size:0.9rem;">−</button>
+                                <span style="width:30px; text-align:center; font-size:0.85rem;">${item.quantity}</span>
+                                <button onclick="updateQty(${index}, 1)" style="width:28px; height:28px; border:none; background:none; cursor:pointer; font-size:0.9rem;">+</button>
+                            </div>
+                        </td>
+                        <td style="font-weight:500; font-size:0.9rem;">${formatPrice(item.unit_price * item.quantity)} ${CONFIG.CURRENCY}</td>
+                        <td>
+                            <button onclick="removeItem(${index})" title="Supprimer"
+                                    style="background:none; border:none; cursor:pointer; color:var(--mist); font-size:1.2rem; transition:color 0.2s;"
+                                    onmouseover="this.style.color='#C0392B'" onmouseout="this.style.color='var(--mist)'">×</button>
+                        </td>
+                    </tr>`).join('')}
+                </tbody>
+            </table>
+
+            <a href="catalogue.html" style="font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--mist);">
+                ← Continuer mes achats
+            </a>
+        </div>
+
+        <!-- RÉSUMÉ -->
+        <div class="cart-summary" style="position:sticky; top:100px;">
+            <h3>Résumé de la commande</h3>
+
+            <div class="summary-line">
+                <span>Sous-total</span>
+                <span>${formatPrice(total)} ${CONFIG.CURRENCY}</span>
+            </div>
+            <div class="summary-line deposit">
+                <span>Acompte à payer maintenant (${CONFIG.DEPOSIT_PERCENT}%)</span>
+                <span>${formatPrice(deposit)} ${CONFIG.CURRENCY}</span>
+            </div>
+            <div class="summary-line">
+                <span style="color:var(--mist);">Reste à la livraison</span>
+                <span style="color:var(--mist);">${formatPrice(balance)} ${CONFIG.CURRENCY}</span>
+            </div>
+            <div class="summary-line total">
+                <span>Total</span>
+                <span>${formatPrice(total)} ${CONFIG.CURRENCY}</span>
+            </div>
+
+            <div style="background:var(--ivory); padding:1rem; margin:1rem 0; font-size:0.78rem; color:var(--mist); line-height:1.6; border-left:3px solid var(--gold);">
+                <strong style="color:var(--obsidian); display:block; margin-bottom:0.3rem;">Comment ça marche ?</strong>
+                Vous payez l'acompte de <strong style="color:var(--gold);">${formatPrice(deposit)} ${CONFIG.CURRENCY}</strong>
+                via TMoney maintenant. Le reste (<strong>${formatPrice(balance)} ${CONFIG.CURRENCY}</strong>)
+                est payé à la livraison en espèces ou TMoney.
+            </div>
+
+            <p style="font-size:0.75rem; color:var(--mist); display:flex; align-items:center; justify-content:center; gap:0.35rem; margin-bottom:1.5rem;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span>Livraison garantie sous <strong>${CONFIG.DELIVERY_DAYS} jours</strong></span>
+            </p>
+
+            <a href="commander.html" class="btn btn-primary" style="display:block; width:100%; text-align:center; padding:1rem; margin-bottom:0.75rem;">
+                Finaliser ma commande
+            </a>
+
+            <button onclick="orderViaWhatsApp()"
+                    style="display:flex; align-items:center; justify-content:center; gap:0.5rem; width:100%; padding:1rem;
+                           background:#25D366; color:white; border:none; cursor:pointer;
+                           font-size:0.78rem; letter-spacing:0.1em; text-transform:uppercase; font-weight:500;">
+                Commander via WhatsApp
+            </button>
+
+            <p style="text-align:center; font-size:0.7rem; color:var(--mist); margin-top:1rem;">
+                Paiement sécurisé via <strong>TMoney</strong> · Livraison sous <strong>${CONFIG.DELIVERY_DAYS} jours</strong>
+            </p>
+        </div>
+    </div>`;
+}
+
+function updateQty(index, delta) {
+    const items = Cart.getItems();
+    if (!items[index]) return;
+    Cart.setQuantity(index, items[index].quantity + delta);
+    renderCart();
+}
+
+function removeItem(index) {
+    Cart.remove(index);
+    renderCart();
+}
+
+function clearCart() {
+    if (!confirm('Voulez-vous vraiment vider tout votre panier ?')) return;
+    Cart.clear();
+    renderCart();
+}
+
+function orderViaWhatsApp() {
+    const items = Cart.getItems();
+    const lines = items.map(i => `- ${i.product_name}${i.size ? ' (Taille ' + i.size + ')' : ''} (Quantité : ${i.quantity})`);
+    const message = "Bonjour Riyaa's Collection, je souhaite commander :\n" + lines.join('\n') +
+        `\nTotal : ${formatPrice(Cart.total())} ${CONFIG.CURRENCY}`;
+    window.open(`https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
+}
+</script>
+
+</body>
+</html>

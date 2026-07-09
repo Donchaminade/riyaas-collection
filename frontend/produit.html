@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Produit — Riyaa's Collection</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        .product-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5rem;
+            align-items: start;
+        }
+        @media (max-width: 900px) {
+            .product-layout { grid-template-columns: 1fr; gap: 2.5rem; }
+            .product-details { position: static !important; }
+        }
+        .size-option {
+            display: block;
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--blush);
+            font-size: 0.78rem;
+            letter-spacing: 0.08em;
+            transition: all 0.2s;
+            background: var(--white);
+            cursor: pointer;
+        }
+        .size-radio:checked + .size-option {
+            border-color: var(--obsidian);
+            background: var(--obsidian);
+            color: var(--ivory);
+        }
+        .color-option {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--blush);
+            font-size: 0.78rem;
+            letter-spacing: 0.08em;
+            font-family: var(--font-body);
+            transition: all 0.2s;
+            background: var(--white);
+            color: var(--obsidian);
+            cursor: pointer;
+        }
+        .color-option.selected {
+            border-color: var(--obsidian);
+            background: var(--obsidian);
+            color: var(--ivory);
+        }
+    </style>
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<main id="main-content">
+    <!-- Breadcrumb -->
+    <div style="background:var(--white); padding:1rem 0; border-bottom:1px solid var(--blush);">
+        <div class="container">
+            <p id="breadcrumb" style="font-size:0.7rem; color:var(--mist); letter-spacing:0.08em;">
+                <a href="index.html" style="color:var(--mist);">Accueil</a> &nbsp;/&nbsp;
+                <a href="catalogue.html" style="color:var(--mist);">Catalogue</a>
+            </p>
+        </div>
+    </div>
+
+    <section style="padding:4rem 0 6rem; background:var(--ivory);">
+        <div class="container">
+            <div id="product-container">
+                <p style="text-align:center; color:var(--mist); padding:4rem 0;">Chargement du produit…</p>
+            </div>
+        </div>
+    </section>
+</main>
+
+<div id="site-footer"></div>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/cart.js"></script>
+<script src="assets/js/layout.js"></script>
+<script>
+let currentProduct = null;
+let selectedColor  = ''; // couleur choisie via les pastilles (transmise au panier)
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const slug      = new URLSearchParams(location.search).get('slug');
+    const container = document.getElementById('product-container');
+
+    if (!slug) {
+        location.href = 'catalogue.html';
+        return;
+    }
+
+    try {
+        const { data: p } = await API.showProduct(slug);
+        currentProduct = p;
+        document.title = `${p.name} — Riyaa's Collection`;
+
+        const isPromo    = Boolean(Number(p.en_promotion)) && p.prix_promotion;
+        const finalPrice = Number(p.final_price);
+        const deposit    = finalPrice * CONFIG.DEPOSIT_PERCENT / 100;
+        const lowStock   = p.stock_quantity && Number(p.stock_quantity) <= Number(p.seuil_alerte_stock || 3);
+        const images     = p.images || [];
+        const cover      = images.find(i => Number(i.is_cover)) || images[0];
+
+        // Couleurs disponibles : une pastille par couleur taguée sur les images,
+        // associée à la première image portant cette couleur
+        const colorGroups = [];
+        images.forEach(img => {
+            if (img.color && !colorGroups.some(c => c.color === img.color)) {
+                colorGroups.push({ color: img.color, src: img.url });
+            }
+        });
+
+        document.getElementById('breadcrumb').innerHTML += `
+            &nbsp;/&nbsp;
+            <a href="catalogue.html?categorie=${encodeURIComponent(p.category_slug)}" style="color:var(--mist);">${escapeHtml(p.category_name)}</a>
+            &nbsp;/&nbsp;
+            <span style="color:var(--obsidian);">${escapeHtml(p.name)}</span>`;
+
+        container.innerHTML = `
+        <div class="product-layout">
+
+            <!-- GALERIE -->
+            <div>
+                <div style="overflow:hidden; background:var(--blush); margin-bottom:1rem;">
+                    ${cover
+                        ? `<img id="main-product-image" src="${cover.url}" alt="${escapeHtml(p.name)}"
+                                fetchpriority="high" decoding="async"
+                                style="width:100%; aspect-ratio:3/4; object-fit:cover; display:block; transition:opacity 0.3s;">`
+                        : '<div style="width:100%; aspect-ratio:3/4; background:linear-gradient(135deg, var(--blush), var(--gold-light));"></div>'}
+                </div>
+                ${colorGroups.length ? `
+                <div style="margin-bottom:1rem;">
+                    <p style="font-size:0.68rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--mist); margin-bottom:0.75rem;">Couleur</p>
+                    <div style="display:flex; flex-wrap:wrap; gap:0.5rem;">
+                        ${colorGroups.map(c => `
+                            <button type="button" class="color-option" data-color="${escapeHtml(c.color)}" data-src="${c.src}">
+                                ${escapeHtml(c.color)}
+                            </button>`).join('')}
+                    </div>
+                </div>` : ''}
+                ${images.length > 1 ? `
+                <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+                    ${images.map(img => `
+                        <button type="button" class="thumb-btn" data-src="${img.url}" data-color="${escapeHtml(img.color || '')}"
+                                style="border:2px solid ${img === cover ? 'var(--gold)' : 'transparent'}; padding:0; cursor:pointer; background:none; transition:border-color 0.2s;">
+                            <img src="${img.url}" alt="${escapeHtml(p.name)}" loading="lazy" decoding="async" style="width:72px; height:90px; object-fit:cover; display:block;">
+                        </button>`).join('')}
+                </div>` : ''}
+            </div>
+
+            <!-- INFOS -->
+            <div class="product-details" style="position:sticky; top:100px;">
+                <p style="font-size:0.68rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold); margin-bottom:0.75rem;">
+                    ${escapeHtml(p.category_name)}
+                </p>
+                <h1 style="font-family:var(--font-display); font-size:clamp(1.8rem,3vw,2.8rem); font-weight:300; color:var(--obsidian); margin-bottom:1.5rem; line-height:1.2;">
+                    ${escapeHtml(p.name)}
+                </h1>
+
+                ${isPromo ? `
+                <div style="display:inline-block; background:#C0392B; color:white; font-size:0.7rem; letter-spacing:0.1em; padding:0.4rem 0.9rem; margin-bottom:1rem; font-weight:500;">
+                    PROMOTION
+                </div>` : ''}
+
+                ${lowStock ? `
+                <div style="background:#fdf0ef; border-left:3px solid #C0392B; padding:0.8rem 1rem; margin-bottom:1.5rem;">
+                    <p style="font-size:0.85rem; color:#C0392B; font-weight:600;">
+                        Plus que ${p.stock_quantity} exemplaire${p.stock_quantity > 1 ? 's' : ''} disponible${p.stock_quantity > 1 ? 's' : ''} !
+                    </p>
+                </div>` : ''}
+
+                <!-- PRIX -->
+                <div style="margin-bottom:1.5rem; padding:1.5rem; background:var(--white); border:1px solid var(--blush);">
+                    <div style="display:flex; align-items:baseline; gap:0.6rem; margin-bottom:0.75rem; flex-wrap:wrap;">
+                        <span style="font-family:var(--font-display); font-size:2.2rem; font-weight:600; color:${isPromo ? '#C0392B' : 'var(--obsidian)'};">
+                            ${formatPrice(finalPrice)}
+                        </span>
+                        <span style="font-size:0.85rem; color:var(--mist); letter-spacing:0.05em;">${CONFIG.CURRENCY}</span>
+                        ${isPromo ? `<span style="font-size:1.1rem; color:var(--mist); text-decoration:line-through;">${formatPrice(p.price)} ${CONFIG.CURRENCY}</span>` : ''}
+                    </div>
+                    <div style="border-top:1px solid var(--blush); padding-top:0.75rem;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem;">
+                            <span style="font-size:0.78rem; color:var(--mist);">Acompte à payer maintenant (${CONFIG.DEPOSIT_PERCENT}%)</span>
+                            <span style="font-size:0.82rem; font-weight:500; color:var(--gold);">${formatPrice(deposit)} ${CONFIG.CURRENCY}</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between;">
+                            <span style="font-size:0.78rem; color:var(--mist);">Reste à payer à la livraison</span>
+                            <span style="font-size:0.82rem; color:var(--mist);">${formatPrice(finalPrice - deposit)} ${CONFIG.CURRENCY}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <p style="font-size:0.78rem; color:var(--mist); margin-bottom:1.5rem; letter-spacing:0.05em;">
+                    Matière : <strong style="color:var(--obsidian);">${escapeHtml(p.material)}</strong>
+                </p>
+
+                ${p.description ? `
+                <p style="font-size:0.9rem; color:var(--mist); line-height:1.8; margin-bottom:1.5rem; font-weight:300;">
+                    ${escapeHtml(p.description).replace(/\n/g, '<br>')}
+                </p>` : ''}
+
+                <!-- TAILLES -->
+                ${(p.variants || []).length ? `
+                <div style="margin-bottom:1.5rem;">
+                    <p style="font-size:0.68rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--mist); margin-bottom:0.75rem;">Taille</p>
+                    <div style="display:flex; flex-wrap:wrap; gap:0.5rem;">
+                        ${p.variants.map((v, i) => `
+                            <label style="cursor:pointer;">
+                                <input type="radio" name="variant_id" value="${v.id}" class="size-radio" style="display:none;" ${i === 0 ? 'checked' : ''}>
+                                <span class="size-option">
+                                    ${escapeHtml(v.size || '')}${Number(v.extra_price) > 0 ? ' +' + formatPrice(v.extra_price) + ' ' + CONFIG.CURRENCY : ''}
+                                </span>
+                            </label>`).join('')}
+                    </div>
+                </div>` : ''}
+
+                <!-- QUANTITÉ -->
+                <div style="margin-bottom:1.5rem;">
+                    <p style="font-size:0.68rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--mist); margin-bottom:0.75rem;">Quantité</p>
+                    <div style="display:flex; align-items:center; border:1px solid var(--blush); width:fit-content; background:var(--white);">
+                        <button type="button" onclick="changeQty(-1)" style="width:40px; height:40px; border:none; background:none; font-size:1.1rem; cursor:pointer; color:var(--obsidian);">−</button>
+                        <input type="number" id="qty-input" value="1" min="1" max="10"
+                               style="width:50px; text-align:center; border:none; border-left:1px solid var(--blush); border-right:1px solid var(--blush); height:40px; font-family:var(--font-body); font-size:0.9rem; background:none; outline:none;">
+                        <button type="button" onclick="changeQty(1)" style="width:40px; height:40px; border:none; background:none; font-size:1.1rem; cursor:pointer; color:var(--obsidian);">+</button>
+                    </div>
+                </div>
+
+                <!-- ACTIONS -->
+                <button type="button" id="add-cart-btn" class="btn btn-primary" style="width:100%; padding:1.1rem; font-size:0.78rem; margin-bottom:0.75rem;">
+                    Ajouter au panier
+                </button>
+                <button type="button" id="buy-now-btn"
+                        style="width:100%; padding:1.1rem; font-size:0.78rem; letter-spacing:0.15em; text-transform:uppercase; background:var(--gold); color:white; border:none; cursor:pointer; margin-bottom:0.75rem; transition:background 0.2s;"
+                        onmouseover="this.style.background='#9c7d44'" onmouseout="this.style.background='var(--gold)'">
+                    Commander maintenant
+                </button>
+
+                <div id="cart-message" style="display:none; text-align:center; padding:0.75rem; background:#e8f5ee; color:#2E7D52; font-size:0.82rem; margin-bottom:0.75rem;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:0.3rem;"><polyline points="20 6 9 17 4 12"/></svg>Article ajouté au panier !
+                    <a href="panier.html" style="color:#2E7D52; font-weight:500; margin-left:0.5rem;">Voir le panier →</a>
+                </div>
+
+                <!-- INFOS LIVRAISON -->
+                <div style="border-top:1px solid var(--blush); padding-top:1.5rem; margin-top:1rem;">
+                    <div style="display:flex; gap:1rem; margin-bottom:0.75rem; align-items:flex-start;">
+                        <span style="color:var(--gold); flex-shrink:0; display:flex; margin-top:0.1rem;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        </span>
+                        <div>
+                            <p style="font-size:0.78rem; font-weight:500; color:var(--obsidian);">Livraison sous ${p.delivery_days || CONFIG.DELIVERY_DAYS} jours</p>
+                            <p style="font-size:0.72rem; color:var(--mist);">Confection artisanale à la commande</p>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:1rem; margin-bottom:0.75rem; align-items:flex-start;">
+                        <span style="color:var(--gold); flex-shrink:0; display:flex; margin-top:0.1rem;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                        </span>
+                        <div>
+                            <p style="font-size:0.78rem; font-weight:500; color:var(--obsidian);">Paiement via TMoney</p>
+                            <p style="font-size:0.72rem; color:var(--mist);">Acompte sécurisé de ${CONFIG.DEPOSIT_PERCENT}% à la commande</p>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:1rem; align-items:flex-start;">
+                        <span style="color:var(--gold); flex-shrink:0; display:flex; margin-top:0.1rem;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        </span>
+                        <div>
+                            <p style="font-size:0.78rem; font-weight:500; color:var(--obsidian);">Remise en main propre — Lomé</p>
+                            <p style="font-size:0.72rem; color:var(--mist);">Solde payé à la livraison</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+
+        // Galerie : changement d'image principale (la couleur suit si la miniature est taguée)
+        document.querySelectorAll('.thumb-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                swapMainImage(btn.dataset.src);
+                highlightThumb(btn.dataset.src);
+                if (btn.dataset.color) selectColor(btn.dataset.color, false);
+            });
+        });
+
+        // Pastilles couleur : bascule sur la première image de la couleur choisie
+        document.querySelectorAll('.color-option').forEach(btn => {
+            btn.addEventListener('click', () => {
+                selectColor(btn.dataset.color, true);
+            });
+        });
+
+        document.getElementById('add-cart-btn').addEventListener('click', () => addToCart(false));
+        document.getElementById('buy-now-btn').addEventListener('click', () => addToCart(true));
+
+    } catch (e) {
+        container.innerHTML = `
+            <div style="text-align:center; padding:4rem 0;">
+                <p style="font-family:var(--font-display); font-size:1.5rem; color:var(--mist);">Produit introuvable.</p>
+                <a href="catalogue.html" class="btn btn-primary" style="margin-top:1.5rem;">Retour au catalogue</a>
+            </div>`;
+        console.error(e);
+    }
+});
+
+function changeQty(delta) {
+    const input = document.getElementById('qty-input');
+    input.value = Math.max(1, Math.min(10, parseInt(input.value || 1) + delta));
+}
+
+// Précharge la nouvelle image avant de l'afficher (pas de flash blanc)
+function swapMainImage(src) {
+    const main = document.getElementById('main-product-image');
+    if (!main || main.src === src) return;
+    const preload = new Image();
+    preload.onload = () => {
+        main.style.opacity = '0';
+        setTimeout(() => { main.src = src; main.style.opacity = '1'; }, 150);
+    };
+    preload.src = src;
+}
+
+// Met en surbrillance la miniature correspondant à l'image affichée
+function highlightThumb(src) {
+    document.querySelectorAll('.thumb-btn').forEach(b => {
+        b.style.borderColor = b.dataset.src === src ? 'var(--gold)' : 'transparent';
+    });
+}
+
+// Sélectionne une couleur ; swapImage = true pour basculer l'image principale
+function selectColor(color, swapImage) {
+    selectedColor = color;
+    document.querySelectorAll('.color-option').forEach(b => {
+        b.classList.toggle('selected', b.dataset.color === color);
+        if (swapImage && b.dataset.color === color) {
+            swapMainImage(b.dataset.src);
+            highlightThumb(b.dataset.src);
+        }
+    });
+}
+
+async function addToCart(buyNow) {
+    const btn = document.getElementById(buyNow ? 'buy-now-btn' : 'add-cart-btn');
+    const originalText = btn.textContent;
+    btn.disabled    = true;
+    btn.textContent = buyNow ? 'Redirection…' : 'Ajout en cours…';
+
+    const variantRadio = document.querySelector('.size-radio:checked');
+
+    try {
+        // Prix calculé côté serveur (promo + variante)
+        const { item } = await API.cartAdd({
+            product_id: currentProduct.id,
+            variant_id: variantRadio ? parseInt(variantRadio.value) : 0,
+            quantity:   parseInt(document.getElementById('qty-input').value || 1),
+            color:      selectedColor,
+        });
+
+        // La couleur choisie via les pastilles prime si la variante n'en a pas
+        if (selectedColor && !item.color) item.color = selectedColor;
+
+        Cart.add(item);
+
+        if (buyNow) {
+            location.href = 'commander.html';
+            return;
+        }
+
+        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:0.35rem;"><polyline points="20 6 9 17 4 12"/></svg>Ajouté !';
+        document.getElementById('cart-message').style.display = 'block';
+        setTimeout(() => {
+            btn.textContent = originalText;
+            btn.disabled    = false;
+        }, 3000);
+    } catch (e) {
+        btn.textContent = 'Erreur — Réessayer';
+        btn.disabled    = false;
+        console.error(e);
+    }
+}
+</script>
+
+</body>
+</html>

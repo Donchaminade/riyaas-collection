@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catalogue — Riyaa's Collection</title>
+    <meta name="description" content="Découvrez notre catalogue de vêtements en soie : jupes, chemises et hauts confectionnés à la commande.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<main id="main-content">
+
+    <!-- ══ EN-TÊTE CATALOGUE ═════════════════════════════════ -->
+    <section style="padding: 3rem 0 2rem; background: var(--white); border-bottom: 1px solid var(--blush);">
+        <div class="container">
+            <p id="catalog-eyebrow" style="font-size:0.7rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold); margin-bottom:0.5rem;">
+                Toute la collection
+            </p>
+            <h1 id="catalog-title" style="font-family:var(--font-display); font-size:clamp(2rem,4vw,3rem); font-weight:300;">
+                Notre catalogue
+            </h1>
+        </div>
+    </section>
+
+    <!-- ══ FILTRES ═══════════════════════════════════════════ -->
+    <section style="padding: 1.5rem 0; background: var(--white); border-bottom: 1px solid var(--blush); position:sticky; top:72px; z-index:10;">
+        <div class="container">
+            <div id="filters" style="display:flex; gap:1rem; flex-wrap:wrap; align-items:center;">
+                <span id="product-count" style="margin-left:auto; font-size:0.78rem; color:var(--mist);"></span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══ GRILLE PRODUITS ═══════════════════════════════════ -->
+    <section style="padding: 4rem 0 6rem; background: var(--ivory);">
+        <div class="container">
+            <div id="products-container">
+                <p style="text-align:center; color:var(--mist); padding:4rem 0;">Chargement du catalogue…</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══ CTA DEMANDE SUR MESURE ════════════════════════════ -->
+    <section style="padding:4.5rem 0; background:var(--obsidian); text-align:center;">
+        <div class="container" style="max-width:680px;">
+            <p style="font-size:0.7rem; letter-spacing:0.25em; text-transform:uppercase; color:var(--gold); margin-bottom:0.8rem;">
+                Service sur mesure
+            </p>
+            <h2 style="font-family:var(--font-display); font-size:clamp(1.6rem,3vw,2.3rem); font-weight:300; color:var(--ivory); margin-bottom:1rem;">
+                Vous ne trouvez pas votre bonheur ?
+            </h2>
+            <p style="font-size:0.92rem; color:rgba(248,245,240,0.7); margin-bottom:2rem;">
+                Un modèle vu ailleurs, une couleur introuvable, une envie précise :
+                décrivez la pièce, joignez une photo, nous la confectionnons pour vous.
+            </p>
+            <a href="demande.html" class="btn btn-primary">Demandez votre pièce sur mesure</a>
+        </div>
+    </section>
+
+</main>
+
+<div id="site-footer"></div>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/cart.js"></script>
+<script src="assets/js/layout.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    const params       = new URLSearchParams(location.search);
+    const activeSlug   = params.get('categorie');
+    const container    = document.getElementById('products-container');
+    const filtersEl    = document.getElementById('filters');
+    const countEl      = document.getElementById('product-count');
+
+    const filterStyle = (active, gold) => `
+        font-size:0.7rem; letter-spacing:0.15em; text-transform:uppercase;
+        padding:0.4rem 1rem; border:1px solid; text-decoration:none; transition:all 0.2s;
+        ${active
+            ? (gold ? 'border-color:var(--gold); background:var(--gold); color:var(--white);'
+                    : 'border-color:var(--obsidian); background:var(--obsidian); color:var(--ivory);')
+            : 'border-color:var(--blush); color:var(--mist);'}`;
+
+    try {
+        const [{ data: categories }, { data: products }] = await Promise.all([
+            API.categories(),
+            API.listProducts(activeSlug),
+        ]);
+
+        // Filtres
+        const links = [
+            `<a href="catalogue.html" style="${filterStyle(!activeSlug, false)}">Tout voir</a>`,
+            ...categories.map(cat =>
+                `<a href="catalogue.html?categorie=${encodeURIComponent(cat.slug)}"
+                    style="${filterStyle(activeSlug === cat.slug, true)}">${escapeHtml(cat.name)}</a>`),
+        ];
+        filtersEl.insertAdjacentHTML('afterbegin', links.join(''));
+
+        // Titre
+        const activeCat = categories.find(c => c.slug === activeSlug);
+        if (activeCat) {
+            document.getElementById('catalog-eyebrow').textContent = activeCat.name;
+            document.getElementById('catalog-title').textContent   = activeCat.name;
+            document.title = `${activeCat.name} — Riyaa's Collection`;
+        }
+
+        // Compteur + grille
+        countEl.textContent = `${products.length} modèle${products.length > 1 ? 's' : ''}`;
+
+        if (!products.length) {
+            container.innerHTML = `
+                <div style="text-align:center; padding:6rem 0;">
+                    <p style="font-family:var(--font-display); font-size:1.5rem; font-weight:300; color:var(--mist);">
+                        Aucun modèle disponible pour l'instant.
+                    </p>
+                    <p style="font-size:0.85rem; color:var(--mist); margin-top:0.5rem;">
+                        Revenez bientôt, de nouveaux modèles arrivent !
+                    </p>
+                </div>`;
+        } else {
+            container.innerHTML = `<div class="products-grid">${products.map(productCardHtml).join('')}</div>`;
+        }
+    } catch (e) {
+        container.innerHTML = `<p style="text-align:center; color:var(--error); padding:4rem 0;">Impossible de charger le catalogue. Veuillez réessayer.</p>`;
+        console.error(e);
+    }
+});
+</script>
+
+</body>
+</html>

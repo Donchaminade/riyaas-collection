@@ -2,13 +2,17 @@
 --  RIYAA'S COLLECTION — Script SQL complet FINAL
 --  Version avec toutes les modifications
 --  Encodage : UTF-8
+--
+--  IMPORTANT : ce script ne crée PAS de base de données et ne fait
+--  pas de USE — il s'exécute dans la base déjà sélectionnée dans
+--  phpMyAdmin (ou passée en paramètre à mysql). C'est nécessaire
+--  pour les hébergements mutualisés (Hostinger, etc.) où l'utilisateur
+--  MySQL n'a le droit d'agir que sur sa propre base, avec un nom
+--  imposé par l'hébergeur (ex. u878418868_riyaasdb).
+--
+--  En local (XAMPP) : crée d'abord la base `riyaas_collection` via
+--  phpMyAdmin, sélectionne-la, puis importe ce fichier.
 -- ============================================================
-
-CREATE DATABASE IF NOT EXISTS `riyaas_collection`
-  CHARACTER SET utf8mb4
-  COLLATE utf8mb4_unicode_ci;
-
-USE `riyaas_collection`;
 
 -- ------------------------------------------------------------
 -- TABLE : users
@@ -86,6 +90,8 @@ CREATE TABLE IF NOT EXISTS `product_images` (
   `product_id` INT UNSIGNED NOT NULL,
   `image_path` VARCHAR(300) NOT NULL,
   `alt_text`   VARCHAR(200) DEFAULT NULL,
+  `color`      VARCHAR(80)  DEFAULT NULL,
+  `color_hex`  CHAR(7)      DEFAULT NULL,
   `is_cover`   TINYINT(1)   NOT NULL DEFAULT 0,
   `sort_order` TINYINT      NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
@@ -164,7 +170,7 @@ CREATE TABLE IF NOT EXISTS `orders` (
 CREATE TABLE IF NOT EXISTS `order_items` (
   `id`           INT UNSIGNED   NOT NULL AUTO_INCREMENT,
   `order_id`     INT UNSIGNED   NOT NULL,
-  `product_id`   INT UNSIGNED   NOT NULL,
+  `product_id`   INT UNSIGNED   DEFAULT NULL,
   `variant_id`   INT UNSIGNED   DEFAULT NULL,
   `product_name` VARCHAR(200)   NOT NULL,
   `size`         VARCHAR(20)    DEFAULT NULL,
@@ -178,9 +184,11 @@ CREATE TABLE IF NOT EXISTS `order_items` (
   CONSTRAINT `fk_items_order`
     FOREIGN KEY (`order_id`) REFERENCES `orders`(`id`)
     ON DELETE CASCADE ON UPDATE CASCADE,
+  -- SET NULL : la suppression définitive d'un produit ne casse pas
+  -- l'historique (product_name / unit_price / subtotal sont copiés ici)
   CONSTRAINT `fk_items_product`
     FOREIGN KEY (`product_id`) REFERENCES `products`(`id`)
-    ON DELETE RESTRICT ON UPDATE CASCADE
+    ON DELETE SET NULL ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ------------------------------------------------------------
@@ -242,6 +250,25 @@ CREATE TABLE IF NOT EXISTS `cart_sessions` (
   CONSTRAINT `fk_cart_user`
     FOREIGN KEY (`user_id`) REFERENCES `users`(`id`)
     ON DELETE SET NULL ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ------------------------------------------------------------
+-- TABLE : custom_requests (demandes sur mesure)
+-- ------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `custom_requests` (
+  `id`             INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+  `request_number` VARCHAR(30)   NOT NULL UNIQUE,
+  `customer_name`  VARCHAR(200)  NOT NULL,
+  `customer_phone` VARCHAR(20)   NOT NULL,
+  `description`    TEXT          NOT NULL,
+  `budget`         DECIMAL(10,2) DEFAULT NULL,
+  `image_path`     VARCHAR(300)  DEFAULT NULL,
+  `status`         ENUM('new','in_review','quoted','accepted','rejected','completed')
+                                 NOT NULL DEFAULT 'new',
+  `admin_notes`    TEXT          DEFAULT NULL,
+  `created_at`     DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  INDEX `idx_custom_requests_status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================

@@ -1,0 +1,11 @@
+# Secrets de production (jamais dans git)
+backend/config/config.local.php
+
+# Images uploadées
+backend/uploads/products/*
+!backend/uploads/products/.htaccess
+
+# Divers
+.DS_Store
+Thumbs.db
+*.log

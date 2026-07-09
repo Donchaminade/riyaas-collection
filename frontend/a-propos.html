@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>À propos — Riyaa's Collection</title>
+    <meta name="description" content="Riyaa's Collection — Maison de confection artisanale à Lomé. Des vêtements en soie naturelle 100%, taillés à la commande, pour vous.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        .about-split {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+        .about-split--reverse .about-visual { order: 2; }
+        @media (max-width: 800px) {
+            .about-split { grid-template-columns: 1fr; gap: 2rem; }
+            .about-split--reverse .about-visual { order: 0; }
+        }
+        .about-visual {
+            aspect-ratio: 4/5;
+            position: relative;
+            overflow: hidden;
+        }
+        .about-visual--a { background: linear-gradient(150deg, var(--blush) 0%, var(--gold-light) 75%, var(--gold) 130%); }
+        .about-visual--b { background: linear-gradient(200deg, var(--gold-light) -20%, var(--blush) 55%, var(--ivory) 100%); }
+        .about-visual--c { background: linear-gradient(140deg, #E9DFD2 0%, var(--gold-light) 60%, #A98A50 130%); }
+        .about-visual::after {
+            content: '';
+            position: absolute;
+            inset: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.45);
+            pointer-events: none;
+        }
+        .about-visual-mark {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-display);
+            font-size: 5rem;
+            font-weight: 300;
+            font-style: italic;
+            color: rgba(255, 255, 255, 0.55);
+        }
+        .about-eyebrow {
+            font-size: 0.7rem;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 1rem;
+        }
+        .about-heading {
+            font-family: var(--font-display);
+            font-size: clamp(1.8rem, 3vw, 2.4rem);
+            font-weight: 300;
+            margin-bottom: 1.2rem;
+        }
+        .about-text p {
+            font-size: 0.95rem;
+            color: var(--mist);
+            margin-bottom: 1rem;
+        }
+        .about-quote {
+            font-family: var(--font-display);
+            font-style: italic;
+            font-weight: 300;
+            font-size: clamp(1.5rem, 3vw, 2.2rem);
+            line-height: 1.4;
+            max-width: 760px;
+            margin: 0 auto;
+            color: var(--obsidian);
+        }
+        .about-quote-source {
+            font-family: var(--font-body);
+            font-style: normal;
+            font-size: 0.72rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-top: 1.5rem;
+            display: block;
+        }
+        .about-figures {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            text-align: center;
+        }
+        @media (max-width: 640px) { .about-figures { grid-template-columns: 1fr; } }
+        .about-figure-value {
+            font-family: var(--font-display);
+            font-size: clamp(2.6rem, 5vw, 3.6rem);
+            font-weight: 300;
+            color: var(--gold);
+            line-height: 1;
+        }
+        .about-figure-label {
+            font-size: 0.72rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--mist);
+            margin-top: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<main id="main-content">
+
+    <!-- ══ BANDEAU TITRE ═════════════════════════════════════ -->
+    <section style="padding:5rem 0 4rem; background:var(--white); border-bottom:1px solid var(--blush); text-align:center;">
+        <div class="container">
+            <p class="about-eyebrow">Notre maison</p>
+            <h1 style="font-family:var(--font-display); font-size:clamp(2.4rem,5vw,3.6rem); font-weight:300;">
+                La soie, cousue à Lomé,<br><em>pensée pour vous</em>
+            </h1>
+            <p style="max-width:620px; margin:1.5rem auto 0; color:var(--mist); font-size:0.95rem;">
+                Riyaa's Collection est une maison de confection togolaise dédiée à une seule matière :
+                la soie naturelle. Chaque pièce naît d'une commande, jamais d'un stock.
+            </p>
+        </div>
+    </section>
+
+    <!-- ══ HISTOIRE ══════════════════════════════════════════ -->
+    <section style="padding:6rem 0; background:var(--ivory);">
+        <div class="container">
+            <div class="about-split">
+                <div class="about-visual about-visual--a">
+                    <span class="about-visual-mark">R</span>
+                </div>
+                <div class="about-text">
+                    <p class="about-eyebrow">L'histoire</p>
+                    <h2 class="about-heading">Un atelier né d'une conviction</h2>
+                    <p>
+                        Tout commence à Lomé, avec une idée simple : les femmes d'ici méritent
+                        des vêtements en soie véritable, coupés à leurs mesures, sans passer par
+                        les circuits de la fast fashion.
+                    </p>
+                    <p>
+                        De cette conviction est né un atelier de confection artisanale. Jupes,
+                        chemises et hauts y sont taillés un à un, à la main, dans des soies
+                        choisies pour leur tombé, leur brillance et leur douceur sur la peau.
+                    </p>
+                    <p>
+                        Aujourd'hui, Riyaa's Collection habille des clientes à Lomé et au-delà,
+                        en gardant le même geste : une pièce, une personne, un soin absolu du détail.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══ CITATION ══════════════════════════════════════════ -->
+    <section style="padding:5rem 0; background:var(--obsidian); text-align:center;">
+        <div class="container">
+            <blockquote class="about-quote" style="color:var(--ivory);">
+                « La soie ne se porte pas, elle s'habite. C'est pourquoi nous ne
+                confectionnons rien avant de savoir pour qui. »
+                <span class="about-quote-source">Riyaa's Collection — Lomé</span>
+            </blockquote>
+        </div>
+    </section>
+
+    <!-- ══ VALEURS ═══════════════════════════════════════════ -->
+    <section style="padding:6rem 0; background:var(--white);">
+        <div class="container">
+            <div class="about-split about-split--reverse">
+                <div class="about-visual about-visual--b">
+                    <span class="about-visual-mark">S</span>
+                </div>
+                <div class="about-text">
+                    <p class="about-eyebrow">Nos valeurs</p>
+                    <h2 class="about-heading">Trois engagements, aucun compromis</h2>
+                    <p>
+                        <strong style="color:var(--obsidian); font-weight:500;">Soie naturelle 100%.</strong>
+                        Aucune matière synthétique n'entre dans l'atelier. Chaque coupon est
+                        sélectionné pour sa fluidité et sa tenue dans le temps.
+                    </p>
+                    <p>
+                        <strong style="color:var(--obsidian); font-weight:500;">Le sur-mesure comme norme.</strong>
+                        Votre taille, votre couleur, vos envies : la pièce est confectionnée
+                        pour vous après votre commande, jamais avant.
+                    </p>
+                    <p>
+                        <strong style="color:var(--obsidian); font-weight:500;">L'artisanat local.</strong>
+                        Tout est cousu à Lomé, par des mains d'ici. Acheter une pièce Riyaa's,
+                        c'est faire vivre un savoir-faire togolais.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══ PROCESSUS ═════════════════════════════════════════ -->
+    <section style="padding:6rem 0; background:var(--ivory);">
+        <div class="container">
+            <div class="about-split">
+                <div class="about-visual about-visual--c">
+                    <span class="about-visual-mark">5</span>
+                </div>
+                <div class="about-text">
+                    <p class="about-eyebrow">La confection</p>
+                    <h2 class="about-heading">De votre commande à votre penderie</h2>
+                    <p>
+                        Dès réception de votre acompte de 50% via TMoney, la confection démarre :
+                        coupe du coupon de soie, assemblage, essayages internes, finitions main,
+                        repassage et contrôle final.
+                    </p>
+                    <p>
+                        Cinq jours plus tard au maximum, votre pièce vous est remise en main
+                        propre à Lomé. Vous la découvrez, vous l'essayez, puis vous réglez le
+                        solde — en espèces ou par TMoney.
+                    </p>
+                    <p>
+                        Une envie particulière, un modèle vu ailleurs ? Notre service
+                        <a href="demande.html" style="color:var(--gold); border-bottom:1px solid var(--gold);">sur mesure</a>
+                        étudie chaque demande, photo à l'appui.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══ CHIFFRES CLÉS ═════════════════════════════════════ -->
+    <section style="padding:5rem 0; background:var(--white); border-top:1px solid var(--blush); border-bottom:1px solid var(--blush);">
+        <div class="container">
+            <div class="about-figures">
+                <div>
+                    <p class="about-figure-value">100%</p>
+                    <p class="about-figure-label">Soie naturelle</p>
+                </div>
+                <div>
+                    <p class="about-figure-value">5 jours</p>
+                    <p class="about-figure-label">De la commande à la livraison</p>
+                </div>
+                <div>
+                    <p class="about-figure-value">50%</p>
+                    <p class="about-figure-label">D'acompte, le solde à la remise</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ══ ENGAGEMENT QUALITÉ ════════════════════════════════ -->
+    <section style="padding:6rem 0; background:var(--ivory); text-align:center;">
+        <div class="container" style="max-width:760px;">
+            <p class="about-eyebrow">Engagement qualité</p>
+            <h2 class="about-heading">Chaque pièce est vérifiée avant de partir</h2>
+            <p style="color:var(--mist); font-size:0.95rem;">
+                Coutures, doublures, boutonnières, tombé : rien ne quitte l'atelier sans un
+                contrôle complet. Si un détail ne vous convient pas à la remise en main propre,
+                nous le reprenons. C'est la contrepartie naturelle du sur-mesure — et la raison
+                pour laquelle nos clientes reviennent.
+            </p>
+        </div>
+    </section>
+
+    <!-- ══ CTA FINAL ═════════════════════════════════════════ -->
+    <section class="section-material">
+        <div class="container">
+            <div class="material-inner">
+                <h2>Envie de porter la soie ?</h2>
+                <p>Parcourez nos jupes, chemises et hauts en soie naturelle — chaque modèle est confectionné à la commande, pour vous.</p>
+                <a href="catalogue.html" class="btn btn-primary">Découvrir le catalogue</a>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<div id="site-footer"></div>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/cart.js"></script>
+<script src="assets/js/layout.js"></script>
+
+</body>
+</html>

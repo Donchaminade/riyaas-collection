@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact — Riyaa's Collection</title>
+    <meta name="description" content="Contactez Riyaa's Collection à Lomé, Togo : WhatsApp, paiement TMoney, horaires de l'atelier.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        .contact-layout {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 3rem;
+            align-items: start;
+        }
+        @media (max-width: 860px) { .contact-layout { grid-template-columns: 1fr; } }
+        .contact-item {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
+            padding: 1.3rem 0;
+            border-bottom: 1px solid var(--blush);
+        }
+        .contact-item:last-child { border-bottom: none; }
+        .contact-item svg { flex-shrink: 0; color: var(--gold); margin-top: 0.2rem; }
+        .contact-item h3 {
+            font-size: 0.68rem;
+            font-family: var(--font-body);
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--mist);
+            font-weight: 500;
+            margin-bottom: 0.3rem;
+        }
+        .contact-item p { font-size: 0.92rem; }
+        .contact-item a { color: var(--gold); }
+        .contact-item a:hover { color: var(--gold-light); }
+    </style>
+</head>
+<body>
+
+<div id="site-header"></div>
+
+<main id="main-content">
+
+    <!-- ══ BANDEAU TITRE ═════════════════════════════════════ -->
+    <section style="padding:3rem 0 2rem; background:var(--white); border-bottom:1px solid var(--blush);">
+        <div class="container">
+            <p style="font-size:0.7rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--gold); margin-bottom:0.5rem;">
+                Nous écrire
+            </p>
+            <h1 style="font-family:var(--font-display); font-size:clamp(2rem,4vw,3rem); font-weight:300;">
+                Contact
+            </h1>
+        </div>
+    </section>
+
+    <section style="padding:4rem 0 6rem; background:var(--ivory);">
+        <div class="container">
+            <div class="contact-layout">
+
+                <!-- COORDONNÉES -->
+                <div style="background:var(--white); border:1px solid var(--blush); padding:2rem;">
+                    <h2 style="font-family:var(--font-display); font-size:1.4rem; font-weight:400; margin-bottom:0.5rem;">
+                        L'atelier
+                    </h2>
+                    <p style="font-size:0.85rem; color:var(--mist); margin-bottom:1rem;">
+                        Notre canal privilégié est WhatsApp : c'est là que nous répondons
+                        le plus vite, photos et détails à l'appui.
+                    </p>
+
+                    <div class="contact-item">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        <div>
+                            <h3>Adresse</h3>
+                            <p>Lomé, Togo</p>
+                            <p style="font-size:0.8rem; color:var(--mist);">Remise des commandes en main propre</p>
+                        </div>
+                    </div>
+
+                    <div class="contact-item">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                        <div>
+                            <h3>WhatsApp</h3>
+                            <p><a id="whatsapp-link" href="#" target="_blank" rel="noopener">Chargement…</a></p>
+                            <p style="font-size:0.8rem; color:var(--mist);">Réponse rapide, 7 jours sur 7</p>
+                        </div>
+                    </div>
+
+                    <div class="contact-item">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                        <div>
+                            <h3>Paiement</h3>
+                            <p>TMoney (Mix by Yass) : <strong id="tmoney-number"></strong></p>
+                            <p style="font-size:0.8rem; color:var(--mist);">Acompte de 50%, solde à la livraison</p>
+                        </div>
+                    </div>
+
+                    <div class="contact-item">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        <div>
+                            <h3>Horaires indicatifs</h3>
+                            <p>Lundi – Samedi : 9h – 19h</p>
+                            <p style="font-size:0.8rem; color:var(--mist);">Dimanche : sur rendez-vous WhatsApp</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FORMULAIRE -->
+                <div style="background:var(--white); border:1px solid var(--blush); padding:2rem;">
+                    <h2 style="font-family:var(--font-display); font-size:1.4rem; font-weight:400; margin-bottom:0.5rem;">
+                        Envoyez-nous un message
+                    </h2>
+                    <p style="font-size:0.85rem; color:var(--mist); margin-bottom:1.5rem;">
+                        Remplissez ce formulaire : votre message s'ouvrira pré-rempli dans
+                        WhatsApp, il ne vous restera qu'à l'envoyer.
+                    </p>
+
+                    <form id="contact-form" onsubmit="return false;">
+                        <div class="form-group">
+                            <label>Votre nom *</label>
+                            <input type="text" name="name" required placeholder="Ex: Ama Koffi">
+                        </div>
+                        <div class="form-group">
+                            <label>Votre téléphone / WhatsApp *</label>
+                            <input type="tel" name="phone" required placeholder="Ex: 90 00 00 00">
+                        </div>
+                        <div class="form-group">
+                            <label>Votre message *</label>
+                            <textarea name="message" rows="6" required placeholder="Ex: Bonjour, j'aimerais savoir si la jupe portefeuille existe en vert émeraude…"></textarea>
+                        </div>
+
+                        <p id="contact-error" style="display:none; color:var(--error); font-size:0.82rem; margin-bottom:0.8rem;"></p>
+
+                        <button type="button" id="contact-submit"
+                                style="display:flex; align-items:center; justify-content:center; gap:0.5rem; width:100%; padding:1rem;
+                                       background:#25D366; color:white; border:none; cursor:pointer;
+                                       font-size:0.78rem; letter-spacing:0.1em; text-transform:uppercase; font-weight:500; font-family:var(--font-body);">
+                            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                            Envoyer sur WhatsApp
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<div id="site-footer"></div>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/api.js"></script>
+<script src="assets/js/cart.js"></script>
+<script src="assets/js/layout.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Coordonnées dynamiques depuis la config
+    const waLink = document.getElementById('whatsapp-link');
+    waLink.href        = `https://wa.me/${CONFIG.WHATSAPP_NUMBER}`;
+    waLink.textContent = `+${CONFIG.WHATSAPP_NUMBER}`;
+    document.getElementById('tmoney-number').textContent = CONFIG.TMONEY_NUMBER;
+
+    // Formulaire → message WhatsApp pré-rempli
+    document.getElementById('contact-submit').addEventListener('click', () => {
+        const form    = document.getElementById('contact-form');
+        const errorEl = document.getElementById('contact-error');
+
+        // form.elements : form.name renverrait l'attribut name du <form>, pas le champ
+        const name    = form.elements['name'].value.trim();
+        const phone   = form.elements['phone'].value.trim();
+        const message = form.elements['message'].value.trim();
+
+        if (!name || !phone || !message) {
+            errorEl.textContent   = 'Merci de remplir votre nom, votre téléphone et votre message.';
+            errorEl.style.display = 'block';
+            return;
+        }
+        errorEl.style.display = 'none';
+
+        const text =
+            "Bonjour Riyaa's Collection,\n\n" +
+            message + "\n\n" +
+            `— ${name}\n` +
+            `Téléphone : ${phone}`;
+
+        window.open(`https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`, '_blank');
+    });
+});
+</script>
+
+</body>
+</html>
